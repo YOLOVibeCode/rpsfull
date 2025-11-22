@@ -1,0 +1,565 @@
+# ROCK-PAPER-SCISSORS TOURNAMENT PLATFORM
+## Detailed Application Specifications v1.0
+
+---
+
+## 1. PROJECT OVERVIEW
+
+### 1.1 Project Name
+RPS Tournament Platform (working title)
+
+### 1.2 Project Vision
+A mobile-responsive web application for managing and playing tournament-based Rock-Paper-Scissors games with support for multiple game variants, detailed statistics tracking, and both live and digital gameplay modes.
+
+### 1.3 Core Concept
+- Default game: Rock, Paper, Scissors
+- Extensible to custom game types (e.g., Rock, Paper, Scissors, Hammer, Nail)
+- Tournament management with automatic bracket generation
+- Player registration and stat tracking
+- Dual play modes: Digital face-to-face and Live recording
+
+---
+
+## 2. USER ROLES & AUTHENTICATION
+
+### 2.1 User Types
+1. **Anonymous User** - Can view public tournaments
+2. **Registered Player** - Has email tied to account, can claim matches and view personal stats
+3. **Tournament Organizer** - Can create tournaments, add players, manage matches
+4. **Admin** - Full system access
+
+### 2.2 Player Management
+- Players can be created without email addresses (for quick tournament setup)
+- Players can optionally provide email addresses to claim their profiles
+- Email-registered players can:
+  - Login to view their statistics
+  - See match history
+  - View lifetime achievements
+  - Track performance metrics
+
+---
+
+## 3. GAME TYPES & RULES
+
+### 3.1 Game Type System
+- Each game type is independently defined
+- Game types include:
+  - Symbol set (e.g., Rock, Paper, Scissors)
+  - Win/loss matrix (what beats what)
+  - Scoring methodology
+  - Visual assets (icons, animations)
+
+### 3.2 Default Game Type: Classic RPS
+**Symbols:**
+- Rock 🪨
+- Paper 📄
+- Scissors ✂️
+
+**Rules:**
+- Rock beats Scissors
+- Scissors beats Paper
+- Paper beats Rock
+- Same symbol = Tie
+
+### 3.3 Future Game Types
+- Extensible system to add variants (e.g., Rock, Paper, Scissors, Lizard, Spock)
+- Custom game types with unique symbol sets
+- Each game type has its own scoring system
+
+---
+
+## 4. MATCH TYPES & FORMATS
+
+### 4.1 Quick Match (Primary Mode)
+- Click "Play" button
+- System finds available opponent
+- Configurable match settings:
+  - Best of 3 (ties don't count)
+  - Best of 5 (ties don't count)
+  - Best of 7, 9, 11, etc.
+  - Best of N (with reasonable upper limit, e.g., N ≤ 31)
+
+### 4.2 Tournament Match
+- Part of organized tournament bracket
+- Follows tournament-specific rules
+- Results feed into bracket progression
+
+### 4.3 Match Configuration Options
+- Game type selection
+- Number of rounds (best of N)
+- Tie handling (ties don't count by default)
+- Time limits per round (optional)
+
+---
+
+## 5. GAMEPLAY MODES
+
+### 5.1 Mode 1: Digital Face-to-Face Play
+**Description:** Two players face each other with their phones for actual gameplay
+
+**Flow:**
+1. Players enter a match together
+2. Each player sees their perspective on their own device
+3. Can see opponent's screen (facing each other)
+4. App displays countdown: "Rock... Paper... Scissors... SHOOT!"
+5. Both players select their icon simultaneously
+6. Results are displayed immediately
+
+**Victory Animation:**
+- Confetti falls from top of screen
+- Screen stays normal color (NO green background)
+
+**Loss Animation:**
+- Player's selected hand explodes with animation
+- Screen stays normal color (NO red background)
+
+**Round History:**
+- After round ends, both selected symbols animate and fly to top-left corner
+- Previous rounds displayed as minimized cards in chronological order
+- Players can see complete match history at a glance
+
+### 5.2 Mode 2: Live Recording Mode
+**Description:** Manual recording of physical gameplay
+
+**Purpose:**
+- Record results of games played in real life
+- Maintains tournament integrity by logging physical matches
+- Allows tournament progression without digital gameplay
+
+**Flow:**
+1. Observer/referee mode
+2. Players play physical RPS
+3. Observer marks the winner and move used
+4. Results count toward tournament standings
+
+**Features:**
+- Quick input for: Win/Loss/Tie
+- Symbol selection for both players
+- Timestamp recording
+- Match context (tournament tie-in)
+
+---
+
+## 6. TOURNAMENT SYSTEM
+
+### 6.1 Tournament Creation
+**Setup Flow:**
+1. Tournament organizer selects "Create Tournament"
+2. Provides tournament name and description
+3. Selects game type
+4. Adds player list (names, optional emails)
+5. Configures match format (best of N)
+6. System automatically generates bracket
+
+### 6.2 Tournament Bracket
+- Automatic bracket generation based on player count
+- Standard single-elimination or double-elimination
+- Visual bracket display
+- Real-time updates as matches complete
+
+### 6.3 Tournament Management
+- Add/remove players before start
+- Track match completion status
+- View current round
+- Progress to next round automatically when current round completes
+
+---
+
+## 7. STATISTICS & ANALYTICS
+
+### 7.1 Player Statistics (Per Player)
+**Match-Level Stats:**
+- Total matches played
+- Wins / Losses / Ties
+- Win percentage
+- Current win streak
+- Longest win streak
+
+**Move-Level Stats:**
+- Rock usage frequency & win rate
+- Paper usage frequency & win rate
+- Scissors usage frequency & win rate
+- Most successful move
+- Least successful move
+
+**Opponent Analysis:**
+- Performance against specific opponents
+- "Player X wins more with Paper"
+- "Player X is better against opponents who use Rock"
+
+**Timing Stats:**
+- Average time to make move
+- Fastest move selection
+- Per-move timing patterns
+
+### 7.2 Lifetime Statistics
+- Total games across all tournaments
+- All-time win/loss record
+- Career achievement milestones
+- Ranking/level system based on total plays
+- Historical performance trends
+
+### 7.3 Match Statistics
+- Detailed breakdown of each match
+- Timeline of moves made
+- Timestamps for each round
+- Winner determination logic displayed
+
+### 7.4 Game Type Statistics
+- Stats segmented by game type
+- Performance comparison across different variants
+
+---
+
+## 8. RANKING & PROGRESSION SYSTEM
+
+### 8.1 Leveling Up
+**Primary Method:** Play matches
+- Each match grants experience/points
+- Wins grant more points
+- Consecutive wins grant bonus points
+
+### 8.2 Ranking System
+- Display player rankings globally
+- Tournament-specific rankings
+- Seasonal leaderboards (optional)
+
+---
+
+## 9. USER INTERFACE & EXPERIENCE
+
+### 9.1 Mobile-First Design
+- Fully responsive design
+- Optimized for phone screens (primary use case)
+- Touch-friendly controls
+- Large, easy-to-tap gesture buttons
+
+### 9.2 Key Screens
+
+**Home Screen:**
+- Quick Play button (primary action)
+- My Stats
+- Browse Tournaments
+- Create Tournament
+
+**Match Screen (Digital Mode):**
+- Large symbol selection buttons
+- Countdown timer display
+- Score tracker at top
+- Previous rounds in top-left corner (minimized)
+- Opponent indicator
+
+**Match Screen (Live Recording Mode):**
+- Quick winner selection
+- Move selection for both players
+- Tie option
+- Submit button
+- Current match context display
+
+**Tournament Screen:**
+- Visual bracket display
+- Match status indicators
+- Player names clearly visible
+- Click match for details
+
+**Statistics Screen:**
+- Dashboard with key metrics
+- Win/Loss chart
+- Move breakdown (pie/bar chart)
+- Match history list
+- Performance trends
+
+### 9.3 Visual Design Principles
+- Clean, modern interface
+- Intuitive navigation
+- Immediate visual feedback
+- Engaging animations (confetti, explosions)
+- Clear typography
+- Consistent color scheme
+
+---
+
+## 10. TECHNICAL FEATURES
+
+### 10.1 Core Functionality
+- Real-time match synchronization (for digital mode)
+- Automatic tournament bracket generation
+- User authentication (email-based)
+- Data persistence
+- Responsive web design
+
+### 10.2 Data Recording
+**Per Round:**
+- Player 1 move
+- Player 2 move
+- Result (win/loss/tie)
+- Timestamp
+- Round number
+- Match context
+
+**Per Match:**
+- Players involved
+- Game type used
+- Match format (best of N)
+- Total rounds played
+- Winner
+- Final score
+- Duration
+- Tournament association (if applicable)
+
+### 10.3 Animation Requirements
+**Victory:**
+- Confetti particles falling from top
+- Confetti colors: multi-colored
+- Duration: 2-3 seconds
+- Non-blocking (can interact during animation)
+
+**Loss:**
+- Hand explosion effect
+- Particle burst animation
+- Duration: 1-2 seconds
+
+**Round End Transition:**
+- Both symbol cards animate to top-left
+- Smooth transition (fly/slide motion)
+- Scale down to thumbnail size
+- Stack chronologically
+
+---
+
+## 11. TECHNICAL ARCHITECTURE (Recommendations)
+
+### 11.1 Frontend
+- Modern JavaScript framework (React, Vue, or similar)
+- Mobile-responsive CSS framework
+- Animation library for confetti/explosions
+- State management for match synchronization
+
+### 11.2 Backend
+- RESTful API or GraphQL
+- Real-time capabilities (WebSocket for live matches)
+- Database for player, match, and tournament data
+- Authentication system
+
+### 11.3 Database Schema (Key Entities)
+- Users/Players
+- Game Types
+- Tournaments
+- Matches
+- Rounds
+- Statistics
+- Achievements
+
+---
+
+## 12. USER STORIES
+
+### 12.1 Tournament Organizer
+- "As a tournament organizer, I want to create a tournament with a list of players so that I can run organized competitions."
+- "As a tournament organizer, I want the system to automatically generate brackets so that I don't have to manually arrange matches."
+- "As a tournament organizer, I want to record live match results so that physical gameplay can count toward tournament standings."
+
+### 12.2 Registered Player
+- "As a registered player, I want to view my lifetime statistics so that I can track my improvement."
+- "As a registered player, I want to see which moves I'm most successful with so that I can understand my play style."
+- "As a registered player, I want to quickly find a match so that I can play immediately."
+
+### 12.3 Casual Player
+- "As a casual player, I want to play a quick match without registration so that I can try the game easily."
+- "As a casual player, I want clear visual feedback when I win or lose so that the experience is engaging."
+
+---
+
+## 13. FUTURE ENHANCEMENTS (Post-MVP)
+
+### 13.1 Social Features
+- Friend lists
+- Private tournaments
+- Challenge specific players
+- Chat/messaging
+
+### 13.2 Advanced Statistics
+- AI-powered play pattern analysis
+- Predictive opponent modeling
+- Strategic recommendations
+
+### 13.3 Customization
+- Custom avatars
+- Unlockable animations
+- Theme customization
+- Sound effects
+
+### 13.4 Achievements System
+- Badge collection
+- Milestone rewards
+- Rare achievement tracking
+
+### 13.5 Multi-platform
+- Native mobile apps
+- Desktop application
+- Cross-platform synchronization
+
+---
+
+## 14. DEVELOPMENT PHASES
+
+### Phase 1: Core Functionality (MVP)
+- Player management (with/without email)
+- Classic RPS game type
+- Digital face-to-face gameplay mode
+- Basic match recording
+- Simple statistics (wins/losses)
+- Responsive UI
+
+### Phase 2: Tournament System
+- Tournament creation
+- Automatic bracket generation
+- Tournament progression
+- Live recording mode
+- Enhanced statistics
+
+### Phase 3: Polish & Analytics
+- Advanced statistics and analytics
+- Ranking/leveling system
+- Animated feedback (confetti, explosions)
+- Performance optimization
+- UI/UX refinement
+
+### Phase 4: Expansion
+- Additional game types
+- Social features
+- Achievement system
+- Advanced customization
+
+---
+
+## 15. SUCCESS METRICS
+
+### 15.1 User Engagement
+- Daily active users
+- Average matches per user
+- Tournament completion rate
+- Return user rate
+
+### 15.2 Technical Performance
+- Page load time < 2 seconds
+- Match synchronization latency < 100ms
+- Mobile responsiveness across devices
+- 99.9% uptime
+
+### 15.3 User Satisfaction
+- Ease of use rating
+- Feature usage statistics
+- User feedback scores
+
+---
+
+## 16. CONSTRAINTS & REQUIREMENTS
+
+### 16.1 Must Have
+- Mobile-responsive design
+- Classic RPS gameplay
+- Tournament bracket generation
+- Player statistics tracking
+- Both digital and live recording modes
+
+### 16.2 Should Have
+- Email authentication
+- Advanced statistics
+- Animated feedback
+- Multiple game types
+- Ranking system
+
+### 16.3 Could Have
+- Social features
+- Achievements
+- Custom themes
+- AI opponents
+
+### 16.4 Won't Have (Initial Release)
+- Native mobile apps
+- Video recording
+- Streaming integration
+- Monetary transactions
+
+---
+
+## APPENDIX A: GAME ANIMATIONS SPECIFICATION
+
+### Victory Animation - Confetti
+- **Trigger:** Player wins a round
+- **Effect:** Confetti particles fall from top of screen
+- **Colors:** Rainbow/multi-colored
+- **Duration:** 2-3 seconds
+- **Particle Count:** 50-100 pieces
+- **Physics:** Realistic gravity and slight horizontal drift
+- **Background:** Normal (no color change)
+
+### Loss Animation - Hand Explosion
+- **Trigger:** Player loses a round
+- **Effect:** Selected hand symbol explodes into particles
+- **Duration:** 1-2 seconds
+- **Particle Behavior:** Radial burst from center
+- **Background:** Normal (no color change)
+
+### Round End Transition
+- **Trigger:** Round completes (after win/loss animation)
+- **Effect:** Both symbol cards animate to top-left corner
+- **Animation Type:** Smooth fly/slide with easing
+- **Target Position:** Top-left corner, stacked chronologically
+- **Final Size:** Thumbnail (20-25% of original size)
+- **Display:** Vertical or horizontal stack showing round history
+
+---
+
+## APPENDIX B: TECHNICAL CONSIDERATIONS
+
+### B.1 Security
+- Secure authentication
+- Match result validation
+- Anti-cheating measures
+- Data privacy compliance
+
+### B.2 Scalability
+- Support for concurrent matches
+- Efficient database queries
+- Caching strategy
+- CDN for static assets
+
+### B.3 Accessibility
+- WCAG 2.1 compliance
+- Screen reader support
+- Keyboard navigation
+- High contrast mode
+
+### B.4 Browser Support
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- iOS Safari
+- Android Chrome
+- Graceful degradation for older browsers
+
+---
+
+## DOCUMENT CONTROL
+
+**Version:** 1.0  
+**Date:** November 22, 2025  
+**Status:** Draft  
+**Author:** Application Specification Writer  
+**Next Review:** TBD
+
+---
+
+## NOTES & OPEN QUESTIONS
+
+1. **Match Limits:** What is the maximum "Best of N" value? (Suggested: 31)
+2. **Tournament Formats:** Should we support double-elimination or other formats?
+3. **Time Limits:** Should individual rounds have time limits to prevent stalling?
+4. **Ranking Algorithm:** What specific algorithm should determine player rankings?
+5. **Data Retention:** How long should match data be stored?
+6. **Offline Support:** Should the app work offline for local tournaments?
+7. **Tie-Breaker Rules:** For tournaments, what happens with ties in overall performance?
+
+---
+
+END OF SPECIFICATION DOCUMENT
