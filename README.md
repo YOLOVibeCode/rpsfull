@@ -1,338 +1,57 @@
 # RPSFull Tournament Platform
 
-**Repository:** https://github.com/YOLOVibeCode/rpsfull.git  
-**Version:** 1.0.0  
-**Status:** Development
-
----
-
-## 🎯 Project Overview
-
-RPSFull is a mobile-responsive web application for managing and playing tournament-based Rock-Paper-Scissors games. The platform supports multiple game variants, detailed statistics tracking, and both live and digital gameplay modes.
-
----
-
-## 🏗️ Core Development Principles
-
-### 1. Test-Driven Development (TDD)
-
-**We strictly follow TDD methodology:**
-
-- ✅ **Write tests FIRST** - Before any implementation code
-- ✅ **Red-Green-Refactor cycle** - See test fail, make it pass, improve code
-- ✅ **Test coverage** - Maintain 80%+ coverage across all packages
-- ✅ **Test-first mindset** - Every feature starts with a failing test
-
-**TDD Workflow:**
-```
-1. 🔴 RED: Write failing test
-2. 🟢 GREEN: Write minimal code to pass
-3. 🔵 REFACTOR: Improve while tests stay green
-```
-
-**See:** `docs/implementation/05_TDD_ISP_METHODOLOGY.md` for complete TDD guide
-
-### 2. Interface Segregation Principle (ISP)
-
-**We strictly follow ISP:**
-
-- ✅ **Small, focused interfaces** - One responsibility per interface
-- ✅ **No "god interfaces"** - Split large interfaces into smaller ones
-- ✅ **Services implement only what they need** - No forced dependencies
-- ✅ **Composition over inheritance** - Prefer combining small interfaces
-
-**ISP Example:**
-```typescript
-// ✅ GOOD: Segregated interfaces
-interface IMatchService {
-  createMatch(): void;
-  getMatch(): void;
-}
-
-interface IMatchGameplayService {
-  submitMove(): void;
-  recordRound(): void;
-}
-
-// ❌ BAD: Large interface
-interface IGameService {
-  createMatch(): void;
-  createTournament(): void;
-  calculateStats(): void;
-  validateGame(): void;
-}
-```
-
-**See:** `docs/implementation/05_TDD_ISP_METHODOLOGY.md` for complete ISP guide
-
-### 3. Mock API First Development
-
-**We develop frontend against Mock API:**
-
-- ✅ **Mock API is primary** - Frontend development uses mock API exclusively
-- ✅ **Full CRUD operations** - Mock API implements all endpoints
-- ✅ **Realistic data** - Mock API provides realistic seed data
-- ✅ **Backend follows later** - Backend implementation happens after frontend is functional
-
-**Development Flow:**
-```
-1. Mock API → Complete CRUD implementation
-2. Frontend → Develop against Mock API
-3. Backend → Implement real API matching Mock API contracts
-4. Integration → Replace Mock API with real backend
-```
-
-**See:** `docs/implementation/02_MOCK_API_SPECIFICATION.md` for complete mock API design
-
-### 4. Data Access Layer Excellence
-
-**We use Prisma ORM for all data access:**
-
-- ✅ **Type-safe queries** - Prisma generates TypeScript types
-- ✅ **Migration-based schema** - Version-controlled database changes
-- ✅ **Transaction support** - ACID compliance for data integrity
-- ✅ **Query optimization** - Prisma optimizes queries automatically
-- ✅ **Relationship handling** - Proper foreign keys and constraints
-
-**Data Access Principles:**
-
-1. **Repository Pattern** - All data access through repositories
-2. **Interface-based** - Repositories implement interfaces from contracts package
-3. **Transaction safety** - Critical operations use transactions
-4. **Error handling** - Proper error handling and rollback
-5. **Type safety** - Full TypeScript type safety end-to-end
-
-**Repository Structure:**
-```typescript
-// Repository implements interface from contracts
-class UserRepository implements IUserRepository {
-  constructor(private prisma: PrismaClient) {}
-  
-  async create(data: IUserCreate): Promise<IUser> {
-    return this.prisma.user.create({ data });
-  }
-  
-  async findById(id: string): Promise<IUser | null> {
-    return this.prisma.user.findUnique({ where: { id } });
-  }
-}
-```
-
-**See:** `docs/specs/03_DATABASE_SCHEMA.md` for complete database design
-
----
-
-## 📁 Project Structure
-
-```
-rpsfull/
-├── packages/
-│   ├── contracts/          # @rpsfull-platform/contracts
-│   │   └── src/
-│   │       ├── entities/   # Domain entities
-│   │       ├── dtos/       # Data Transfer Objects
-│   │       ├── interfaces/ # Service contracts (ISP)
-│   │       ├── enums/      # Enumerations
-│   │       └── validators/ # Zod validation schemas
-│   │
-│   ├── frontend/           # Next.js 14+ application
-│   │   └── src/
-│   │       ├── app/        # Next.js App Router
-│   │       ├── components/ # React components
-│   │       ├── features/   # Feature modules
-│   │       └── services/   # API clients
-│   │
-│   ├── backend/            # Express API server
-│   │   └── src/
-│   │       ├── repositories/ # Prisma repositories (TDD + ISP)
-│   │       ├── services/     # Business logic (TDD + ISP)
-│   │       ├── modules/      # Feature modules
-│   │       └── websocket/    # Real-time handlers
-│   │
-│   └── mock-api/           # Mock API server
-│       └── src/
-│           ├── data/        # In-memory data store
-│           ├── routes/      # Express routes
-│           └── services/    # Mock services
-│
-├── docs/
-│   ├── specs/              # Complete specifications
-│   └── implementation/     # Implementation guides
-│
-├── docker-compose.yml      # PostgreSQL, Redis
-├── package.json            # Root package.json
-├── pnpm-workspace.yaml     # PNPM workspaces
-└── README.md               # This file
-```
-
----
+A comprehensive Rock Paper Scissors tournament platform with real-time gameplay, statistics tracking, and custom game type creation.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- **Node.js** 20+ 
-- **PNPM** 8+
-- **Docker** & Docker Compose
-- **Git**
+Before you begin, ensure you have the following installed:
 
-### Initial Setup
+- **Node.js** 20+ ([Download](https://nodejs.org/))
+- **PNPM** 8+ (Install: `npm install -g pnpm`)
+- **Docker Desktop** ([Download](https://www.docker.com/products/docker-desktop/))
+- **Git** (for cloning the repository)
+
+### Installation & Setup
+
+#### 1. Clone the Repository
 
 ```bash
-# Clone repository
-git clone https://github.com/YOLOVibeCode/rpsfull.git
-cd rpsfull
+git clone <repository-url>
+cd RPSFull
+```
 
-# Install dependencies
+#### 2. Install Dependencies
+
+```bash
 pnpm install
+```
 
-# Start Docker services (PostgreSQL, Redis)
+#### 3. Start Docker Services
+
+Start PostgreSQL and Redis using Docker Compose:
+
+```bash
 docker-compose up -d
+```
 
-# Build contracts package
+This starts:
+- **PostgreSQL** on port `5432`
+- **Redis** on port `6379`
+
+Verify services are running:
+```bash
+docker-compose ps
+```
+
+#### 4. Build Contracts Package
+
+```bash
 pnpm contracts:build
 ```
 
-### Development Workflow
-
-**1. Start Mock API (Primary for Frontend Development)**
-```bash
-pnpm mock-api:dev
-# Mock API runs on http://localhost:3001
-```
-
-**2. Start Frontend (Develops Against Mock API)**
-```bash
-cd packages/frontend
-pnpm dev
-# Frontend runs on http://localhost:3000
-```
-
-**3. Backend Development (When Ready)**
-```bash
-cd packages/backend
-
-# Setup database
-pnpm db:migrate
-pnpm db:seed
-
-# Start backend
-pnpm dev
-# Backend runs on http://localhost:3000 (API routes)
-```
-
----
-
-## 🧪 Testing
-
-### TDD Workflow
-
-**Every feature follows this cycle:**
-
-1. **Write Test (RED)**
-   ```typescript
-   describe('Feature', () => {
-     it('should do something', async () => {
-       // Test implementation
-     });
-   });
-   ```
-
-2. **Run Test (Should Fail)**
-   ```bash
-   pnpm test
-   ```
-
-3. **Implement (GREEN)**
-   ```typescript
-   class Feature implements IFeature {
-     // Minimal implementation
-   }
-   ```
-
-4. **Run Test (Should Pass)**
-   ```bash
-   pnpm test
-   ```
-
-5. **Refactor (If Needed)**
-   - Improve code while keeping tests green
-
-### Test Commands
-
-```bash
-# Run all tests
-pnpm test
-
-# Run tests with coverage
-pnpm test:coverage
-
-# Run tests in watch mode
-pnpm test:watch
-
-# Run specific package tests
-pnpm --filter @rpsfull-platform/backend test
-```
-
-### Test Coverage Requirements
-
-- **Minimum Coverage:** 100% (not 80%)
-- **Branches:** 100%
-- **Functions:** 100%
-- **Lines:** 100%
-- **Statements:** 100%
-
-**No exceptions. Build will fail if coverage < 100%.**
-
----
-
-## 📊 Data Access Layer
-
-### Prisma ORM
-
-**We use Prisma for all database operations:**
-
-- **Type Safety** - Generated TypeScript types
-- **Migrations** - Version-controlled schema changes
-- **Relations** - Type-safe relationships
-- **Transactions** - ACID compliance
-- **Query Builder** - Optimized queries
-
-### Repository Pattern
-
-**All data access follows repository pattern:**
-
-```typescript
-// Interface from contracts package
-interface IUserRepository {
-  create(data: IUserCreate): Promise<IUser>;
-  findById(id: string): Promise<IUser | null>;
-  findByEmail(email: string): Promise<IUser | null>;
-  update(id: string, data: IUserUpdate): Promise<IUser>;
-  delete(id: string): Promise<void>;
-}
-
-// Implementation with Prisma
-class UserRepository implements IUserRepository {
-  constructor(private prisma: PrismaClient) {}
-  
-  async create(data: IUserCreate): Promise<IUser> {
-    return this.prisma.user.create({ data });
-  }
-  
-  // ... other methods
-}
-```
-
-### Data Access Principles
-
-1. **Always use repositories** - Never direct Prisma calls in services
-2. **Interface-based** - Repositories implement contracts interfaces
-3. **Transaction safety** - Use transactions for multi-step operations
-4. **Error handling** - Proper error handling and rollback
-5. **Type safety** - Full TypeScript type safety
-
-### Database Setup
+#### 5. Setup Database
 
 ```bash
 cd packages/backend
@@ -340,237 +59,272 @@ cd packages/backend
 # Generate Prisma Client
 pnpm db:generate
 
-# Create migration
+# Run database migrations
 pnpm db:migrate
 
-# Seed database
+# Seed database with test data
 pnpm db:seed
-
-# Open Prisma Studio
-pnpm db:studio
 ```
 
-**See:** `docs/specs/03_DATABASE_SCHEMA.md` for complete schema
+#### 6. Start Development Servers
 
----
+**Terminal 1 - Backend:**
+```bash
+cd packages/backend
+pnpm dev
+```
+
+Backend will start on **http://localhost:4444**
+
+**Terminal 2 - Frontend:**
+```bash
+cd packages/frontend
+pnpm dev
+```
+
+Frontend will start on **http://localhost:4445**
+
+#### 7. Access the Application
+
+- **Frontend**: http://localhost:4445
+- **Backend API**: http://localhost:4444
+- **API Health Check**: http://localhost:4444/health
+- **API Base URL**: http://localhost:4444/api/v1
+
+## 🎮 Test Accounts
+
+After seeding the database, you can login with these test accounts:
+
+| Email | Password | Role | Level | Player Name |
+|-------|----------|------|-------|-------------|
+| `alice@example.com` | `TestPassword123!` | player | 5 | Rocky Rocker |
+| `bob@example.com` | `TestPassword123!` | player | 4 | Penny Paper |
+| `charlie@example.com` | `TestPassword123!` | player | 3 | Sally Scissor |
+| `diana@example.com` | `TestPassword123!` | player | 2 | Lizzie Lizard |
+| `organizer@example.com` | `TestPassword123!` | organizer | 10 | Spock Spock |
+
+## 📊 Test Data
+
+The seed script creates:
+
+- **5 Users** with player profiles
+- **2 Game Types** (Classic RPS, Extended RPS)
+- **13 Matches** (10 completed, 3 pending)
+- **3 Tournaments**:
+  - Spring Championship (open registration)
+  - Quick Match Tournament (in progress with bracket)
+  - Winter Classic (completed)
+- **Player Statistics** for all players
+- **Achievements** for top players
+
+## 🏗️ Project Structure
+
+```
+RPSFull/
+├── packages/
+│   ├── contracts/          # Shared TypeScript types & interfaces
+│   ├── frontend/           # Next.js 14 application (Port 4445)
+│   ├── backend/           # Express.js API server (Port 4444)
+│   └── mock-api/          # Mock API for frontend development
+├── docs/                   # Documentation
+├── docker-compose.yml      # Docker services (PostgreSQL, Redis)
+└── package.json           # Root package.json
+```
+
+## 🛠️ Available Scripts
+
+### Root Level Commands
+
+```bash
+# Development
+pnpm dev                    # Start all services in development mode
+pnpm build                  # Build all packages
+pnpm test                   # Run all tests
+pnpm lint                   # Lint all packages
+pnpm type-check            # Type check all packages
+
+# Package-specific
+pnpm contracts:build        # Build contracts package
+pnpm backend:dev           # Start backend only
+pnpm frontend:dev          # Start frontend only
+pnpm mock-api:dev          # Start mock API only
+```
+
+### Backend Commands
+
+```bash
+cd packages/backend
+
+pnpm dev                    # Start backend server (port 4444)
+pnpm build                  # Build backend
+pnpm test                   # Run tests
+pnpm db:generate           # Generate Prisma Client
+pnpm db:migrate            # Run database migrations
+pnpm db:seed               # Seed database with test data
+pnpm db:studio             # Open Prisma Studio (database GUI)
+```
+
+### Frontend Commands
+
+```bash
+cd packages/frontend
+
+pnpm dev                    # Start Next.js dev server (port 4445)
+pnpm build                  # Build for production
+pnpm start                  # Start production server
+pnpm lint                   # Lint code
+```
+
+## 🏗️ Architecture
+
+### Technology Stack
+
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS, Zustand, React Query, Socket.io Client
+- **Backend**: Node.js, Express.js, TypeScript, PostgreSQL (Prisma), Redis, Socket.io
+- **Infrastructure**: Docker, Docker Compose
+
+### Port Configuration
+
+- **Backend API**: Port `4444`
+- **Frontend**: Port `4445`
+- **PostgreSQL**: Port `5432`
+- **Redis**: Port `6379`
+
+### Key Features
+
+- ✅ Real-time match gameplay with WebSocket
+- ✅ Tournament system with bracket generation
+- ✅ Player statistics and leaderboards
+- ✅ Custom game type creation
+- ✅ Mobile-responsive design
+- ✅ Authentication and authorization
+- ✅ Match history and analytics
 
 ## 📚 Documentation
 
-### Specifications (`docs/specs/`)
+- [QUICK_START.md](./QUICK_START.md) - Quick setup guide
+- [SETUP.md](./SETUP.md) - Detailed setup instructions
+- [TESTING.md](./TESTING.md) - Testing guide
+- [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) - Current progress
+- [API Documentation](./docs/specs/04_API_SPECIFICATION.md) - API endpoints
+- [Database Schema](./docs/specs/03_DATABASE_SCHEMA.md) - Database design
 
-- **01_PROJECT_OVERVIEW.md** - Project vision and goals
-- **02_TECHNICAL_ARCHITECTURE_UPDATED.md** - Next.js + Contracts architecture
-- **03_DATABASE_SCHEMA.md** - Complete database design with Prisma
-- **04_API_SPECIFICATION.md** - All API endpoints
-- **05_UI_UX_DESIGN.md** - Design system and UI specs
-- **06_CONTRACTS_PACKAGE.md** - Type definitions and interfaces (ISP)
-- **07_SVG_ICONS_SPECIFICATION.md** - Icon system and assets
-- **08_HISTORICAL_DATA_ANALYTICS.md** - Historical tracking system
-- **09_GAME_EDITOR_SPECIFICATION.md** - Custom game creation
-- **10_AUTHENTICATION_REGISTRATION.md** - Auth and registration flow
+## 🧪 Testing
 
-### Implementation Guides (`docs/implementation/`)
+```bash
+# Run all tests
+pnpm test
 
-- **00_QUICK_REFERENCE.md** - Developer quick start
-- **01_IMPLEMENTATION_PLAN.md** - High-level roadmap
-- **02_MOCK_API_SPECIFICATION.md** - Complete mock API design
-- **03_SPRINT_PLANNING.md** - Detailed sprint breakdown
-- **04_STEP_BY_STEP_IMPLEMENTATION.md** - Complete step-by-step guide (TDD + ISP)
-- **05_TDD_ISP_METHODOLOGY.md** - Complete TDD + ISP methodology
-- **06_COMPONENT_FIRST_BUILD_ORDER.md** - Component-first build order with 100% test coverage
-
----
-
-## 🔧 Technology Stack
-
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Frontend | Next.js | 14+ |
-| Backend | Express.js | 4.18+ |
-| Database | PostgreSQL | 15+ |
-| ORM | Prisma | 5.7+ |
-| Cache | Redis | 7+ |
-| Real-time | Socket.io | 4.5+ |
-| Language | TypeScript | 5+ |
-| Package Manager | PNPM | 8+ |
-| Styling | Tailwind CSS | 3+ |
-| State | Zustand | 4+ |
-| Data Fetching | React Query | 5+ |
-| Animations | Framer Motion | 10+ |
-| Testing | Jest | 29+ |
-| Validation | Zod | 3.22+ |
-
----
-
-## 🎯 Development Priorities
-
-### Component-First Build Strategy
-
-```
-Phase 1: Base Contract Library (Weeks 1-2)
-    ↓ (100% test coverage required)
-Phase 2: Data Access Library (Weeks 3-4)
-    ↓ (100% test coverage required)
-Phase 3: UI Components (Weeks 5-6)
-    ↓ (100% test coverage required)
-Phase 4: Integration & Features (Weeks 7+)
+# Run with coverage
+pnpm --filter @rpsfull-platform/backend test:coverage
+pnpm --filter @rpsfull-platform/contracts test:coverage
 ```
 
-**CRITICAL:** Each phase must be 100% complete with full test coverage before moving to next phase.
+## 🔄 Resetting Database
 
-**See:** `docs/implementation/06_COMPONENT_FIRST_BUILD_ORDER.md` for complete build order
+To reset and reseed the database:
 
-### Phase 1: Foundation (Current)
-- ✅ Contracts package (100% validator test coverage)
-- ✅ Mock API (Full CRUD)
-- ✅ Database schema (Prisma)
-- ✅ Repository interfaces (ISP)
+```bash
+cd packages/backend
 
-### Phase 2: Data Access Library
-- Repository implementations (100% test coverage)
-- All CRUD operations tested
-- Transaction handling tested
-- Error handling tested
-- Performance benchmarks met
+# Reset database (WARNING: deletes all data)
+pnpm db:migrate reset
 
-### Phase 3: UI Components
-- Component library (100% test coverage)
-- All variants tested
-- All interactions tested
-- Accessibility tested
-- Visual regression tested
+# Reseed
+pnpm db:seed
+```
 
-### Phase 4: Integration & Features
-- Match system (TDD + ISP)
-- Tournament system (TDD + ISP)
-- Authentication (TDD + ISP)
-- Statistics engine (TDD + ISP)
+## 🐛 Troubleshooting
 
----
+### Docker Services Not Running
 
-## 📝 Code Standards
+```bash
+# Check status
+docker-compose ps
 
-### TypeScript
-- Strict mode enabled
-- No `any` types (use `unknown` if needed)
-- All functions typed
-- Interfaces over types for objects
+# View logs
+docker-compose logs postgres
+docker-compose logs redis
 
-### Naming Conventions
-- **Files**: kebab-case (`user-service.ts`)
-- **Components**: PascalCase (`UserProfile.tsx`)
-- **Functions**: camelCase (`getUserById`)
-- **Constants**: UPPER_SNAKE_CASE (`MAX_BEST_OF_N`)
-- **Types/Interfaces**: PascalCase with `I` prefix (`IUser`)
+# Restart services
+docker-compose restart
 
-### Git Workflow
-- **Branch Strategy**: `main`, `develop`, `feature/*`, `fix/*`
-- **Commit Messages**: Conventional commits (`feat:`, `fix:`, `docs:`)
-- **Pull Requests**: Required for all changes
-- **Code Review**: Required before merge
+# Stop services
+docker-compose down
+```
 
----
+### Backend Won't Start
 
-## ✅ Pre-Commit Checklist
+1. Check if port 4444 is available:
+   ```bash
+   lsof -ti:4444
+   ```
 
-Before committing code:
-- [ ] Code compiles without errors
-- [ ] All tests pass
-- [ ] **Test coverage = 100%** (not 80%)
-- [ ] Linting passes (`pnpm lint`)
-- [ ] Type checking passes (`pnpm type-check`)
-- [ ] No console.logs in production code
-- [ ] TDD workflow followed (tests written first)
-- [ ] ISP principles followed (small, focused interfaces)
-- [ ] Data access through repositories only
-- [ ] Changes documented in code comments
-- [ ] Quality gate passed
+2. Check database connection:
+   ```bash
+   cd packages/backend
+   pnpm db:studio  # Opens Prisma Studio
+   ```
 
----
+3. Check environment variables:
+   ```bash
+   # Ensure DATABASE_URL is set correctly
+   # Should be: postgresql://rpsfull:dev_password_change_in_production@localhost:5432/rpsfull_dev
+   ```
+
+### Frontend Can't Connect to Backend
+
+1. Verify backend is running on port 4444
+2. Check browser console for errors
+3. Verify `NEXT_PUBLIC_API_URL` is set to `http://localhost:4444/api/v1`
+4. Check CORS settings in backend
+
+### Database Connection Errors
+
+```bash
+# Verify DATABASE_URL in .env matches docker-compose.yml
+# Test connection
+cd packages/backend
+pnpm db:studio
+```
+
+### Port Already in Use
+
+If ports 4444 or 4445 are already in use:
+
+1. Find process using the port:
+   ```bash
+   lsof -ti:4444
+   lsof -ti:4445
+   ```
+
+2. Kill the process or change ports in:
+   - Backend: `packages/backend/src/server.ts`
+   - Frontend: `packages/frontend/package.json`
 
 ## 🚢 Deployment
 
-### Production Checklist
-- [ ] All tests passing
-- [ ] Security audit completed
-- [ ] Performance benchmarks met
-- [ ] Database migrations tested
-- [ ] Environment variables configured
-- [ ] SSL certificates installed
-- [ ] Monitoring configured
-- [ ] Backup strategy in place
+See [SETUP.md](./SETUP.md) for deployment instructions.
 
----
+## 📝 Development Principles
+
+This project follows:
+
+- **TDD (Test-Driven Development)**: Write tests first, then implement
+- **ISP (Interface Segregation Principle)**: Small, focused interfaces
+- **Repository Pattern**: Clean data access layer
+- **100% Test Coverage**: All repositories and services tested
 
 ## 🤝 Contributing
 
-1. **Clone repository**
-   ```bash
-   git clone https://github.com/YOLOVibeCode/rpsfull.git
-   ```
+[Add contributing guidelines here]
 
-2. **Create feature branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+## 📝 License
 
-3. **Follow TDD + ISP**
-   - Write test first (RED)
-   - Implement to pass (GREEN)
-   - Refactor if needed
-   - Use small, focused interfaces
-
-4. **Use Mock API for Frontend**
-   - Develop frontend against mock API
-   - Mock API provides full CRUD operations
-
-5. **Data Access Through Repositories**
-   - Use Prisma repositories only
-   - Implement contracts interfaces
-   - Follow transaction safety
-
-6. **Submit Pull Request**
-   - Include tests
-   - Update documentation
-   - Follow code standards
+[Add your license here]
 
 ---
 
-## 📞 Support & Resources
+**Built with ❤️ using TDD and ISP principles**
 
-- **Repository:** https://github.com/YOLOVibeCode/rpsfull.git
-- **Documentation:** `docs/` directory
-- **Issues:** GitHub Issues
-- **Discussions:** GitHub Discussions
-
----
-
-## 📄 License
-
-[License information to be added]
-
----
-
-## 📖 Best Practices
-
-This project follows strict coding standards and best practices. **See:** `docs/specs/11_BEST_PRACTICES_STANDARDS.md`
-
-**Key Standards:**
-- ✅ TypeScript strict mode (no `any` types)
-- ✅ Event-based communication patterns
-- ✅ Minimal React useEffect usage
-- ✅ Server Components by default
-- ✅ Pure functions and immutability
-- ✅ Named exports only
-- ✅ 100% test coverage
-- ✅ Conventional commits
-
----
-
-**Last Updated:** November 22, 2025  
-**Maintained By:** Development Team
-
----
-
-END OF README
-
+**Ports**: Backend (4444) | Frontend (4445)

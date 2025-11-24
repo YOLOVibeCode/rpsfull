@@ -1,0 +1,263 @@
+// Prisma Schema for RPSFull Tournament Platform
+// Database: PostgreSQL 15+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(uuid())
+  username          String    @unique @map("username")
+  email             String    @unique @map("email")
+  firstName         String?   @map("first_name")
+  lastName          String?   @map("last_name")
+  passwordHash      String    @map("password_hash")
+  role              String    @default("player")
+  isEmailVerified   Boolean   @default(false) @map("is_email_verified")
+  verificationToken String?   @map("verification_token")
+  resetToken        String?   @map("reset_token")
+  resetTokenExpiry  DateTime? @map("reset_token_expiry")
+  lastLogin         DateTime? @map("last_login")
+  isActive          Boolean   @default(true) @map("is_active")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
+  
+  players       Player[]
+  tournaments   Tournament[]
+  createdGames  GameType[]   @relation("CreatedGameTypes")
+  
+  @@index([username])
+  @@index([email])
+  @@index([role])
+  @@map("User")
+}
+
+model Player {
+  id           String    @id @default(uuid())
+  name         String
+  displayName  String?   @map("display_name")
+  userId       String?   @map("user_id")
+  email        String?
+  avatarUrl    String?   @map("avatar_url")
+  level        Int       @default(1)
+  experience   Int       @default(0)
+  ranking      Int?
+  bio          String?
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+  
+  user                User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  matchesAsPlayer1    Match[]            @relation("Player1Matches")
+  matchesAsPlayer2    Match[]            @relation("Player2Matches")
+  matchesWon          Match[]            @relation("WonMatches")
+  roundsWon           Round[]
+  tournamentEntries   TournamentEntry[]
+  statistics          PlayerStatistics[]
+  achievements        Achievement[]
+  
+  @@index([userId])
+  @@index([ranking])
+  @@index([email])
+  @@map("Player")
+}
+
+model GameType {
+  id             String    @id @default(uuid())
+  name           String    @unique
+  description    String?
+  symbolCount    Int       @map("symbol_count")
+  symbols        Json
+  winMatrix      Json      @map("win_matrix")
+  tieRules       String    @default("replay") @map("tie_rules")
+  scoringMethod  String    @default("best_of_n") @map("scoring_method")
+  iconSet        Json?     @map("icon_set")
+  isActive       Boolean   @default(true) @map("is_active")
+  isDefault      Boolean   @default(false) @map("is_default")
+  createdBy      String?   @map("created_by")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  
+  createdByUser  User?     @relation("CreatedGameTypes", fields: [createdBy], references: [id])
+  matches        Match[]
+  tournaments    Tournament[]
+  statistics     PlayerStatistics[]
+  
+  @@index([name])
+  @@index([isDefault])
+  @@map("GameType")
+}
+
+model Match {
+  id                  String    @id @default(uuid())
+  player1Id           String    @map("player1_id")
+  player2Id           String?   @map("player2_id")
+  gameTypeId          String    @map("game_type_id")
+  tournamentId        String?   @map("tournament_id")
+  matchFormat         String    @default("best_of_n") @map("match_format")
+  bestOfN             Int       @default(3) @map("best_of_n")
+  tiesCount           Boolean   @default(false) @map("ties_count")
+  playMode            String    @default("digital") @map("play_mode")
+  status              String    @default("pending")
+  winnerId            String?   @map("winner_id")
+  player1Score        Int       @default(0) @map("player1_score")
+  player2Score        Int       @default(0) @map("player2_score")
+  totalRounds         Int       @default(0) @map("total_rounds")
+  durationSeconds     Int?      @map("duration_seconds")
+  startedAt           DateTime? @map("started_at")
+  completedAt         DateTime? @map("completed_at")
+  invitationToken     String?   @unique @map("invitation_token")
+  invitationExpiresAt DateTime? @map("invitation_expires_at")
+  invitedPlayerEmail  String?   @map("invited_player_email")
+  invitationCreatedAt  DateTime? @map("invitation_created_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  
+  player1       Player      @relation("Player1Matches", fields: [player1Id], references: [id])
+  player2       Player?      @relation("Player2Matches", fields: [player2Id], references: [id])
+  winner        Player?      @relation("WonMatches", fields: [winnerId], references: [id])
+  gameType      GameType    @relation(fields: [gameTypeId], references: [id])
+  tournament    Tournament? @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
+  rounds        Round[]
+  
+  @@index([player1Id])
+  @@index([player2Id])
+  @@index([tournamentId])
+  @@index([status])
+  @@index([invitationToken])
+  @@index([createdAt(sort: Desc)])
+  @@map("Match")
+}
+
+model Round {
+  id            String    @id @default(uuid())
+  matchId       String    @map("match_id")
+  roundNumber   Int       @map("round_number")
+  player1Move   String?   @map("player1_move")
+  player2Move   String?   @map("player2_move")
+  result        String
+  winnerId      String?   @map("winner_id")
+  player1TimeMs Int?      @map("player1_time_ms")
+  player2TimeMs Int?      @map("player2_time_ms")
+  timestamp     DateTime  @default(now())
+  
+  match   Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  winner  Player? @relation(fields: [winnerId], references: [id])
+  
+  @@index([matchId])
+  @@index([matchId, roundNumber])
+  @@map("Round")
+}
+
+model Tournament {
+  id                  String    @id @default(uuid())
+  name                String
+  description         String?
+  gameTypeId          String    @map("game_type_id")
+  organizerId         String    @map("organizer_id")
+  tournamentType      String    @map("tournament_type")
+  matchFormat         String    @default("best_of_n") @map("match_format")
+  bestOfN             Int       @default(3) @map("best_of_n")
+  status              String    @default("draft")
+  currentRound        Int       @default(0) @map("current_round")
+  totalRounds         Int?      @map("total_rounds")
+  maxParticipants     Int?      @map("max_participants")
+  participantCount    Int       @default(0) @map("participant_count")
+  bracketData         Json?     @map("bracket_data")
+  rules               String?
+  prizeInfo           String?   @map("prize_info")
+  startDate           DateTime? @map("start_date")
+  endDate             DateTime? @map("end_date")
+  registrationDeadline DateTime? @map("registration_deadline")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  
+  organizer         User                @relation(fields: [organizerId], references: [id])
+  gameType          GameType            @relation(fields: [gameTypeId], references: [id])
+  matches           Match[]
+  entries           TournamentEntry[]
+  
+  @@index([organizerId])
+  @@index([status])
+  @@index([gameTypeId])
+  @@map("Tournament")
+}
+
+model TournamentEntry {
+  id            String    @id @default(uuid())
+  tournamentId  String    @map("tournament_id")
+  playerId      String    @map("player_id")
+  seed          Int?
+  status        String    @default("registered")
+  placement     Int?
+  matchesWon    Int       @default(0) @map("matches_won")
+  matchesLost   Int       @default(0) @map("matches_lost")
+  roundsWon     Int       @default(0) @map("rounds_won")
+  roundsLost    Int       @default(0) @map("rounds_lost")
+  registeredAt  DateTime  @default(now()) @map("registered_at")
+  eliminatedAt DateTime? @map("eliminated_at")
+  
+  tournament  Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player      Player      @relation(fields: [playerId], references: [id])
+  
+  @@unique([tournamentId, playerId])
+  @@index([tournamentId])
+  @@index([playerId])
+  @@map("TournamentEntry")
+}
+
+model PlayerStatistics {
+  id                  String    @id @default(uuid())
+  playerId            String    @map("player_id")
+  gameTypeId          String    @map("game_type_id")
+  totalMatches        Int       @default(0) @map("total_matches")
+  matchesWon          Int       @default(0) @map("matches_won")
+  matchesLost         Int       @default(0) @map("matches_lost")
+  matchesTied         Int       @default(0) @map("matches_tied")
+  winRate             Float     @default(0) @map("win_rate")
+  totalRounds         Int       @default(0) @map("total_rounds")
+  roundsWon           Int       @default(0) @map("rounds_won")
+  roundsLost          Int       @default(0) @map("rounds_lost")
+  roundsTied          Int       @default(0) @map("rounds_tied")
+  longestWinStreak    Int       @default(0) @map("longest_win_streak")
+  currentWinStreak    Int       @default(0) @map("current_win_streak")
+  longestLossStreak   Int       @default(0) @map("longest_loss_streak")
+  currentLossStreak   Int       @default(0) @map("current_loss_streak")
+  averageMatchDuration Float    @default(0) @map("average_match_duration")
+  favoriteMove        String?   @map("favorite_move")
+  leastUsedMove       String?   @map("least_used_move")
+  lastPlayedAt        DateTime? @map("last_played_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  
+  player    Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  gameType  GameType  @relation(fields: [gameTypeId], references: [id])
+  
+  @@unique([playerId, gameTypeId])
+  @@index([playerId])
+  @@index([gameTypeId])
+  @@map("PlayerStatistics")
+}
+
+model Achievement {
+  id              String    @id @default(uuid())
+  playerId        String    @map("player_id")
+  achievementType String    @map("achievement_type")
+  name            String
+  description     String?
+  iconUrl         String?   @map("icon_url")
+  rarity          String
+  earnedAt        DateTime  @default(now()) @map("earned_at")
+  
+  player  Player  @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  @@index([playerId])
+  @@map("Achievement")
+}
+

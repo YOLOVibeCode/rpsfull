@@ -1,0 +1,30 @@
+{
+  "name": "rpsfull-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RPSFull Tournament Platform - Monorepo",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:coverage": "turbo run test:coverage",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "contracts:build": "pnpm --filter @rpsfull-platform/contracts build",
+    "contracts:dev": "pnpm --filter @rpsfull-platform/contracts dev",
+    "mock-api:dev": "pnpm --filter @rpsfull-platform/mock-api dev",
+    "frontend:dev": "pnpm --filter @rpsfull-platform/frontend dev",
+    "backend:dev": "pnpm --filter @rpsfull-platform/backend dev"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "turbo": "^1.10.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}
