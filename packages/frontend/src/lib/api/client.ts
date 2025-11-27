@@ -57,6 +57,26 @@ class ApiClient {
           if (typeof window !== 'undefined') {
             window.location.href = '/login';
           }
+        } else if (error.response?.status === 500) {
+          // Emit network error event for global error handling
+          if (typeof window !== 'undefined') {
+            import('../events/eventBus').then(({ eventBus, Events }) => {
+              eventBus.emit(Events.NETWORK_ERROR, {
+                message: 'Server error. Please try again later.',
+                status: 500,
+              });
+            });
+          }
+        } else if (!error.response) {
+          // Network error
+          if (typeof window !== 'undefined') {
+            import('../events/eventBus').then(({ eventBus, Events }) => {
+              eventBus.emit(Events.NETWORK_ERROR, {
+                message: 'Network error. Please check your connection.',
+                status: 0,
+              });
+            });
+          }
         }
         return Promise.reject(error);
       }

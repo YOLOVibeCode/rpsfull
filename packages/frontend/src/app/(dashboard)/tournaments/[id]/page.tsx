@@ -4,7 +4,9 @@ import { useParams } from 'next/navigation';
 import { useTournament, useStartTournament } from '@/hooks/api/useTournaments';
 import { TournamentBracket } from '@/components/tournament/TournamentBracket';
 import { TournamentRegistration } from '@/components/tournament/TournamentRegistration';
+import { TournamentShareCard } from '@/components/tournament/TournamentShareCard';
 import { Button } from '@/components/ui/Button';
+import { ShareButton } from '@/components/ui/ShareButton';
 import { TournamentStatus } from '@rpsfull-platform/contracts';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -90,8 +92,8 @@ export default function TournamentDetailPage() {
           </div>
         </div>
 
-        {canStart && (
-          <div className="mt-6">
+        <div className="mt-6 flex gap-4 items-center">
+          {canStart && (
             <Button
               onClick={handleStartTournament}
               isLoading={startTournament.isPending}
@@ -99,9 +101,30 @@ export default function TournamentDetailPage() {
             >
               Start Tournament
             </Button>
-          </div>
-        )}
+          )}
+          
+          {/* Share Button - Show public link */}
+          {tournament.status === TournamentStatus.REGISTRATION_OPEN && (
+            <ShareButton
+              url={`${typeof window !== 'undefined' ? window.location.origin : ''}/t/${tournamentId}`}
+              title={`Join ${tournament.name}`}
+              text={`Join ${tournament.name} tournament!`}
+              variant="outline"
+            />
+          )}
+        </div>
       </div>
+
+      {/* Share Card (Organizer) */}
+      {isOrganizer && tournament.status === TournamentStatus.REGISTRATION_OPEN && (
+        <div className="mb-6">
+          <TournamentShareCard
+            tournamentId={tournamentId}
+            tournamentName={tournament.name}
+            isOrganizer={isOrganizer}
+          />
+        </div>
+      )}
 
       {/* Registration */}
       {tournament.status === TournamentStatus.REGISTRATION_OPEN && (

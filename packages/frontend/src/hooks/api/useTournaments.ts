@@ -6,7 +6,12 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
-import { ICreateTournamentDto, ITournament } from '@rpsfull-platform/contracts';
+import {
+  ICreateTournamentDto,
+  ITournament,
+  IPublicTournamentDto,
+  ITournamentInvitationResponseDto,
+} from '@rpsfull-platform/contracts';
 
 export function useCreateTournament() {
   const queryClient = useQueryClient();
@@ -75,6 +80,50 @@ export function useStartTournament() {
       queryClient.invalidateQueries({ queryKey: ['tournament', tournamentId] });
       queryClient.invalidateQueries({ queryKey: ['tournaments'] });
     },
+  });
+}
+
+/**
+ * Get public tournament information (no authentication required)
+ */
+export function usePublicTournament(tournamentId: string) {
+  return useQuery({
+    queryKey: ['tournament-public', tournamentId],
+    queryFn: async () => {
+      return apiClient.get<IPublicTournamentDto>(`/tournaments/${tournamentId}/public`);
+    },
+    enabled: !!tournamentId,
+  });
+}
+
+/**
+ * Create tournament invitation (organizer only)
+ */
+export function useCreateTournamentInvitation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (tournamentId: string) => {
+      return apiClient.post<ITournamentInvitationResponseDto>(`/tournaments/${tournamentId}/invitation`);
+    },
+    onSuccess: (_, tournamentId) => {
+      queryClient.invalidateQueries({ queryKey: ['tournament-invitation', tournamentId] });
+      queryClient.invalidateQueries({ queryKey: ['tournament', tournamentId] });
+    },
+  });
+}
+
+/**
+ * Get tournament invitation details
+ */
+export function useTournamentInvitation(tournamentId: string) {
+  return useQuery({
+    queryKey: ['tournament-invitation', tournamentId],
+    queryFn: async () => {
+      return apiClient.get<ITournamentInvitationResponseDto>(`/tournaments/${tournamentId}/invitation`);
+    },
+    enabled: !!tournamentId,
+    retry: false,
   });
 }
 

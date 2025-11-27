@@ -41,14 +41,42 @@ export class QuickStartService {
   ) {}
 
   async quickStartGame(data: QuickStartRequest): Promise<QuickStartResponse> {
-    // Validate emails are different
-    if (data.player1.email.toLowerCase() === data.player2.email.toLowerCase()) {
+    // Validate data structure
+    if (!data?.player1 || !data?.player2) {
+      throw new Error('Both player1 and player2 are required');
+    }
+    
+    // Validate and normalize emails
+    if (!data.player1?.email || typeof data.player1.email !== 'string' || !data.player1.email.trim()) {
+      throw new Error('Player 1 email is required and must be a non-empty string');
+    }
+    if (!data.player2?.email || typeof data.player2.email !== 'string' || !data.player2.email.trim()) {
+      throw new Error('Player 2 email is required and must be a non-empty string');
+    }
+    
+    // Normalize emails for comparison (safe - we've validated they exist and are strings)
+    const player1Email = String(data.player1.email).trim().toLowerCase();
+    const player2Email = String(data.player2.email).trim().toLowerCase();
+    
+    if (!player1Email || !player2Email) {
+      throw new Error('Email addresses cannot be empty after normalization');
+    }
+    
+    if (player1Email === player2Email) {
       throw new Error('Players must have different email addresses');
     }
 
-    // Get or create both players
-    const player1 = await this.getOrCreatePlayer(data.player1);
-    const player2 = await this.getOrCreatePlayer(data.player2);
+    // Get or create both players (use normalized emails and ensure all fields are strings)
+    const player1 = await this.getOrCreatePlayer({
+      firstName: String(data.player1.firstName || '').trim(),
+      lastName: String(data.player1.lastName || '').trim(),
+      email: player1Email,
+    });
+    const player2 = await this.getOrCreatePlayer({
+      firstName: String(data.player2.firstName || '').trim(),
+      lastName: String(data.player2.lastName || '').trim(),
+      email: player2Email,
+    });
 
     // Get default game type
     const gameType = await this.gameTypeRepository.findDefault();
@@ -90,8 +118,19 @@ export class QuickStartService {
   }
 
   private async getOrCreatePlayer(playerInfo: PlayerInfo): Promise<IPlayer> {
+    if (!playerInfo) {
+      throw new Error('Player info is required');
+    }
+    if (!playerInfo.email || typeof playerInfo.email !== 'string') {
+      throw new Error(`Player email is required and must be a string. Received: ${JSON.stringify(playerInfo)}`);
+    }
     const email = playerInfo.email.toLowerCase().trim();
-    const fullName = `${playerInfo.firstName} ${playerInfo.lastName}`.trim();
+    if (!email) {
+      throw new Error('Player email cannot be empty');
+    }
+    const firstName = playerInfo.firstName || '';
+    const lastName = playerInfo.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim();
 
     // Check if user exists
     let user = await this.userRepository.findByEmail(email);
@@ -103,8 +142,12 @@ export class QuickStartService {
       const tempPassword = `temp_${Math.random().toString(36).slice(2)}`;
       const passwordHash = await bcrypt.hash(tempPassword, 10);
 
+      // Generate username from email if not provided
+      const username = email.split('@')[0] + '_' + Math.random().toString(36).slice(2, 8);
+      
       // Create user
       user = await this.userRepository.create({
+        username,
         email,
         passwordHash,
         role: UserRole.PLAYER,
@@ -119,7 +162,7 @@ export class QuickStartService {
       player = await this.playerRepository.create({
         userId: user.id,
         name: fullName,
-        displayName: playerInfo.firstName,
+        displayName: String(playerInfo.firstName || '').trim() || fullName,
         email: user.email,
       });
     } else if (!player) {
@@ -127,7 +170,7 @@ export class QuickStartService {
       player = await this.playerRepository.create({
         userId: user.id,
         name: fullName,
-        displayName: playerInfo.firstName,
+        displayName: String(playerInfo.firstName || '').trim() || fullName,
         email: user.email,
       });
     } else {
@@ -135,7 +178,7 @@ export class QuickStartService {
       if (player.name !== fullName) {
         await this.playerRepository.update(player.id, {
           name: fullName,
-          displayName: playerInfo.firstName,
+          displayName: String(playerInfo.firstName || '').trim() || fullName,
         });
         player = await this.playerRepository.findById(player.id);
       }
@@ -154,12 +197,12 @@ export class QuickStartService {
   }
 
   private generateAccessToken(userId: string): string {
-    const secret = process.env.JWT_SECRET || 'default-secret-change-in-production';
+    const secret = process.env['JWT_SECRET'] || 'default-secret-change-in-production';
     return jwt.sign({ userId }, secret, { expiresIn: '7d' });
   }
 
   private generateRefreshToken(userId: string): string {
-    const secret = process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-change-in-production';
+    const secret = process.env['JWT_REFRESH_SECRET'] || 'default-refresh-secret-change-in-production';
     return jwt.sign({ userId }, secret, { expiresIn: '30d' });
   }
 }

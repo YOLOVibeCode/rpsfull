@@ -12,9 +12,10 @@ import {
   registerEmailSchema,
   loginSchema,
   refreshTokenSchema,
-  verifyEmailSchema,
   checkUsernameSchema,
   checkEmailSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
   IUsernameAvailabilityDto,
   IEmailAvailabilityDto,
 } from '@rpsfull-platform/contracts';
@@ -30,12 +31,12 @@ export function setupAuthRoutes(): Router {
   router.post('/register', validateBody(registerSchema), async (req, res: Response) => {
     try {
       const result = await authService.register(req.body);
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         data: result,
       });
     } catch (error: any) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         error: {
           code: 'AUTH_001',
@@ -55,13 +56,13 @@ export function setupAuthRoutes(): Router {
     async (req, res: Response) => {
       try {
         const result = await authService.registerWithEmail(req.body);
-        res.json({
+        return res.json({
           success: true,
           message: 'Magic link sent to your email',
           data: result,
         });
       } catch (error: any) {
-        res.status(400).json({
+        return res.status(400).json({
           success: false,
           error: {
             code: 'AUTH_001',
@@ -90,12 +91,12 @@ export function setupAuthRoutes(): Router {
       }
 
       const result = await authService.verifyEmail(token);
-      res.json({
+      return res.json({
         success: true,
         data: result,
       });
     } catch (error: any) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         error: {
           code: 'AUTH_004',
@@ -112,12 +113,12 @@ export function setupAuthRoutes(): Router {
   router.post('/login', validateBody(loginSchema), async (req, res: Response) => {
     try {
       const result = await authService.login(req.body);
-      res.json({
+      return res.json({
         success: true,
         data: result,
       });
     } catch (error: any) {
-      res.status(401).json({
+      return res.status(401).json({
         success: false,
         error: {
           code: 'AUTH_001',
@@ -134,12 +135,12 @@ export function setupAuthRoutes(): Router {
   router.post('/refresh', validateBody(refreshTokenSchema), async (req, res: Response) => {
     try {
       const result = await authService.refreshToken(req.body.refreshToken);
-      res.json({
+      return res.json({
         success: true,
         data: result,
       });
     } catch (error: any) {
-      res.status(401).json({
+      return res.status(401).json({
         success: false,
         error: {
           code: 'AUTH_002',
@@ -156,12 +157,12 @@ export function setupAuthRoutes(): Router {
   router.post('/logout', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
       await authService.logout(req.user!.id, req.body.refreshToken || '');
-      res.json({
+      return res.json({
         success: true,
         message: 'Logged out successfully',
       });
     } catch (error: any) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         error: {
           code: 'AUTH_001',
@@ -195,14 +196,14 @@ export function setupAuthRoutes(): Router {
           success: false,
           error: {
             code: 'AUTH_005',
-            message: validation.error.errors[0].message,
+            message: validation.error.errors[0]?.message || 'Invalid input',
           },
         });
       }
 
       const exists = await authService.checkUsernameAvailability(validation.data.username);
       
-      res.json({
+      return res.json({
         success: true,
         data: {
           available: !exists,
@@ -210,7 +211,7 @@ export function setupAuthRoutes(): Router {
         } as IUsernameAvailabilityDto,
       });
     } catch (error: any) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         error: {
           code: 'AUTH_005',
@@ -245,14 +246,14 @@ export function setupAuthRoutes(): Router {
           success: false,
           error: {
             code: 'AUTH_006',
-            message: validation.error.errors[0].message,
+            message: validation.error.errors[0]?.message || 'Invalid email format',
           },
         });
       }
 
       const exists = await authService.checkEmailAvailability(validation.data.email);
       
-      res.json({
+      return res.json({
         success: true,
         data: {
           available: !exists,
@@ -261,11 +262,77 @@ export function setupAuthRoutes(): Router {
         } as IEmailAvailabilityDto,
       });
     } catch (error: any) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         error: {
           code: 'AUTH_006',
           message: error.message,
+        },
+      });
+    }
+  });
+
+  /**
+   * POST /api/v1/auth/forgot-password
+   * Request password reset (sends reset email)
+   */
+  router.post('/forgot-password', validateBody(forgotPasswordSchema), async (req, res: Response) => {
+    try {
+      const result = await authService.forgotPassword(req.body);
+      return res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'AUTH_007',
+          message: error.message,
+        },
+      });
+    }
+  });
+
+  /**
+   * POST /api/v1/auth/reset-password
+   * Reset password with token
+   */
+  router.post('/reset-password', validateBody(resetPasswordSchema), async (req, res: Response) => {
+    try {
+      await authService.resetPassword(req.body);
+      return res.json({
+        success: true,
+        message: 'Password reset successfully',
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'AUTH_008',
+          message: error.message || 'Invalid or expired reset token',
+        },
+      });
+    }
+  });
+
+  /**
+   * POST /api/v1/auth/resend-verification
+   * Resend verification email
+   */
+  router.post('/resend-verification', validateBody(checkEmailSchema), async (req, res: Response) => {
+    try {
+      const result = await authService.resendVerificationEmail(req.body.email);
+      return res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'AUTH_009',
+          message: error.message || 'Failed to resend verification email',
         },
       });
     }

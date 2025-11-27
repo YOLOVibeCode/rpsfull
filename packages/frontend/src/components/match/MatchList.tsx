@@ -4,6 +4,10 @@ import { useMyMatches } from '@/hooks/api/useMatches';
 import { IMatch, MatchStatus } from '@rpsfull-platform/contracts';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import { MatchCardSkeleton } from '@/components/ui/loading-states';
+import { toast } from '@/lib/toast';
+import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 
 interface MatchListProps {
   limit?: number;
@@ -12,17 +16,25 @@ interface MatchListProps {
 export function MatchList({ limit }: MatchListProps) {
   const { data: matches, isLoading, error } = useMyMatches();
 
+  useEffect(() => {
+    if (error) {
+      toast.error('Failed to load matches', 'Please try refreshing the page');
+    }
+  }, [error]);
+
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <div className="space-y-4">
+        {Array.from({ length: limit || 3 }).map((_, i) => (
+          <MatchCardSkeleton key={i} />
+        ))}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+      <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-lg">
         Failed to load matches. Please try again.
       </div>
     );
@@ -43,8 +55,15 @@ export function MatchList({ limit }: MatchListProps) {
 
   return (
     <div className="space-y-4">
-      {displayMatches.map((match) => (
-        <MatchCard key={match.id} match={match} />
+      {displayMatches.map((match, index) => (
+        <motion.div
+          key={match.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+        >
+          <MatchCard match={match} />
+        </motion.div>
       ))}
     </div>
   );
@@ -68,7 +87,11 @@ function MatchCard({ match }: { match: IMatch }) {
 
   return (
     <Link href={`/play/${match.id}`}>
-      <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer">
+      <motion.div
+        className="bg-card border rounded-lg p-6 hover:shadow-lg transition-all cursor-pointer"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
@@ -96,7 +119,7 @@ function MatchCard({ match }: { match: IMatch }) {
             </Button>
           )}
         </div>
-      </div>
+      </motion.div>
     </Link>
   );
 }

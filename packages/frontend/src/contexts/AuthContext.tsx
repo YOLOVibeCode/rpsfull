@@ -2,10 +2,12 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api/client';
-import { IUser, ILoginDto, IRegisterDto } from '@rpsfull-platform/contracts';
+import { IUserPublic, ILoginDto, IRegisterDto } from '@rpsfull-platform/contracts';
+import { toast } from '@/lib/toast';
+import { eventBus, Events } from '@/lib/events/eventBus';
 
 interface AuthContextType {
-  user: IUser | null;
+  user: IUserPublic | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (data: ILoginDto) => Promise<void>;
@@ -17,7 +19,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<IUser | null>(null);
+  const [user, setUser] = useState<IUserPublic | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (data: ILoginDto) => {
     const response = await apiClient.post<{
-      user: IUser;
+      user: IUserPublic;
       accessToken: string;
       refreshToken: string;
     }>('/auth/login', data);
@@ -40,18 +42,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     apiClient.setToken(response.accessToken);
     apiClient.setRefreshToken(response.refreshToken);
     setUser(response.user);
+    
+    // Show welcome toast
+    toast.success('Welcome back!');
+    eventBus.emit(Events.TOAST_SHOW, { type: 'success', message: 'Welcome back!' });
   };
 
   const register = async (data: IRegisterDto & { password: string }) => {
+    // Filter out empty optional fields to avoid validation errors
+    const cleanedData: IRegisterDto & { password: string } = {
+      username: data.username,
+      email: data.email,
+      password: data.password,
+      ...(data.firstName && data.firstName.trim() ? { firstName: data.firstName.trim() } : {}),
+      ...(data.lastName && data.lastName.trim() ? { lastName: data.lastName.trim() } : {}),
+      ...(data.displayName && data.displayName.trim() ? { displayName: data.displayName.trim() } : {}),
+    };
+
     const response = await apiClient.post<{
-      user: IUser;
+      user: IUserPublic;
       accessToken: string;
       refreshToken: string;
-    }>('/auth/register', data);
+    }>('/auth/register', cleanedData);
 
     apiClient.setToken(response.accessToken);
     apiClient.setRefreshToken(response.refreshToken);
     setUser(response.user);
+    
+    // Show success toast
+    toast.success('Account created successfully!');
+    eventBus.emit(Events.TOAST_SHOW, { type: 'success', message: 'Account created successfully!' });
   };
 
   const logout = async () => {
@@ -70,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const userData = await apiClient.get<IUser>('/users/me');
+      const userData = await apiClient.get<IUserPublic>('/users/me');
       setUser(userData);
     } catch (error) {
       setUser(null);

@@ -20,7 +20,7 @@ export class PlayerStatisticsRepository implements IPlayerStatisticsRepository {
     gameTypeId: string,
     data: IPlayerStatisticsUpdate
   ): Promise<IPlayerStatistics> {
-    return this.prisma.playerStatistics.upsert({
+    const result = await this.prisma.playerStatistics.upsert({
       where: {
         playerId_gameTypeId: {
           playerId,
@@ -34,7 +34,7 @@ export class PlayerStatisticsRepository implements IPlayerStatisticsRepository {
         matchesWon: data.matchesWon || 0,
         matchesLost: data.matchesLost || 0,
         matchesTied: data.matchesTied || 0,
-        winRate: data.winRate || 0,
+        winRate: (data.totalMatches || 0) > 0 ? ((data.matchesWon || 0) / (data.totalMatches || 1)) * 100 : 0,
         totalRounds: data.totalRounds || 0,
         roundsWon: data.roundsWon || 0,
         roundsLost: data.roundsLost || 0,
@@ -53,7 +53,6 @@ export class PlayerStatisticsRepository implements IPlayerStatisticsRepository {
         ...(data.matchesWon !== undefined && { matchesWon: data.matchesWon }),
         ...(data.matchesLost !== undefined && { matchesLost: data.matchesLost }),
         ...(data.matchesTied !== undefined && { matchesTied: data.matchesTied }),
-        ...(data.winRate !== undefined && { winRate: data.winRate }),
         ...(data.totalRounds !== undefined && { totalRounds: data.totalRounds }),
         ...(data.roundsWon !== undefined && { roundsWon: data.roundsWon }),
         ...(data.roundsLost !== undefined && { roundsLost: data.roundsLost }),
@@ -78,13 +77,17 @@ export class PlayerStatisticsRepository implements IPlayerStatisticsRepository {
         ...(data.lastPlayedAt !== undefined && { lastPlayedAt: data.lastPlayedAt }),
       },
     });
+    return {
+      ...result,
+      lastPlayedAt: result.lastPlayedAt ?? undefined,
+    } as IPlayerStatistics;
   }
 
   async findByPlayerAndGameType(
     playerId: string,
     gameTypeId: string
   ): Promise<IPlayerStatistics | null> {
-    return this.prisma.playerStatistics.findUnique({
+    const result = await this.prisma.playerStatistics.findUnique({
       where: {
         playerId_gameTypeId: {
           playerId,
@@ -92,27 +95,35 @@ export class PlayerStatisticsRepository implements IPlayerStatisticsRepository {
         },
       },
     });
+    if (!result) return null;
+    return {
+      ...result,
+      lastPlayedAt: result.lastPlayedAt ?? undefined,
+    } as IPlayerStatistics;
   }
 
   async findByPlayerId(playerId: string): Promise<IPlayerStatistics[]> {
-    return this.prisma.playerStatistics.findMany({
+    const results = await this.prisma.playerStatistics.findMany({
       where: { playerId },
       orderBy: { updatedAt: 'desc' },
     });
+    return results.map((result) => ({
+      ...result,
+      lastPlayedAt: result.lastPlayedAt ?? undefined,
+    })) as IPlayerStatistics[];
   }
 
   async update(
     id: string,
     data: IPlayerStatisticsUpdate
   ): Promise<IPlayerStatistics> {
-    return this.prisma.playerStatistics.update({
+    const result = await this.prisma.playerStatistics.update({
       where: { id },
       data: {
         ...(data.totalMatches !== undefined && { totalMatches: data.totalMatches }),
         ...(data.matchesWon !== undefined && { matchesWon: data.matchesWon }),
         ...(data.matchesLost !== undefined && { matchesLost: data.matchesLost }),
         ...(data.matchesTied !== undefined && { matchesTied: data.matchesTied }),
-        ...(data.winRate !== undefined && { winRate: data.winRate }),
         ...(data.totalRounds !== undefined && { totalRounds: data.totalRounds }),
         ...(data.roundsWon !== undefined && { roundsWon: data.roundsWon }),
         ...(data.roundsLost !== undefined && { roundsLost: data.roundsLost }),
@@ -137,6 +148,10 @@ export class PlayerStatisticsRepository implements IPlayerStatisticsRepository {
         ...(data.lastPlayedAt !== undefined && { lastPlayedAt: data.lastPlayedAt }),
       },
     });
+    return {
+      ...result,
+      lastPlayedAt: result.lastPlayedAt ?? undefined,
+    } as IPlayerStatistics;
   }
 
   async delete(id: string): Promise<void> {

@@ -19,6 +19,9 @@ export interface IUser {
   readonly role: UserRole;
   readonly isEmailVerified: boolean;
   readonly isActive: boolean;
+  readonly verificationToken?: string | null;
+  readonly resetToken?: string | null;
+  readonly resetTokenExpiry?: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -47,6 +50,9 @@ export interface IUserUpdate {
   role?: UserRole;
   isEmailVerified?: boolean;
   isActive?: boolean;
+  verificationToken?: string | null;
+  resetToken?: string | null;
+  resetTokenExpiry?: Date | null;
 }
 
 /**

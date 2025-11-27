@@ -88,3 +88,70 @@ export interface ITournamentInvitationDto {
   customMessage?: string;
 }
 
+/**
+ * Public tournament DTO (no authentication required)
+ */
+export interface IPublicTournamentDto {
+  id: string;
+  name: string;
+  description?: string;
+  tournamentType: TournamentType;
+  status: TournamentStatus;
+  currentParticipants: number;
+  maxParticipants?: number;
+  startDate?: Date;
+  registrationDeadline?: Date;
+  gameType: {
+    name: string;
+    description?: string;
+  };
+}
+
+/**
+ * Tournament invitation response DTO
+ */
+export interface ITournamentInvitationResponseDto {
+  tournamentId: string;
+  invitationToken: string;
+  invitationLink: string;
+  qrCodeDataUrl: string;
+  expiresAt: Date;
+  tournamentName: string;
+}
+
+/**
+ * Tournament invitation details DTO (for join page)
+ */
+export interface ITournamentInvitationDetailsDto {
+  tournamentId: string;
+  name: string;
+  description?: string;
+  tournamentType: TournamentType;
+  currentParticipants: number;
+  maxParticipants?: number;
+  startDate?: Date;
+  organizerName: string;
+}
+
+/**
+ * Join tournament by token request DTO
+ */
+export interface IJoinTournamentByTokenDto {
+  token: string;
+  player: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+/**
+ * Join tournament result DTO
+ */
+export interface IJoinTournamentResultDto {
+  tournamentId: string;
+  playerId: string;
+  accessToken: string;
+  refreshToken?: string;
+}
+

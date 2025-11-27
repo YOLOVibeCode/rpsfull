@@ -6,6 +6,9 @@
 
 export * from './AuthService';
 export * from './MatchService';
+export * from './TournamentInvitationService';
+export * from './TournamentMagicLinkService';
+export * from './EmailService';
 export * from './MatchGameplayService';
 export * from './MatchInvitationService';
 export * from './TournamentService';

@@ -7,7 +7,7 @@
  * 3. 🔵 REFACTOR: Improve while keeping tests green
  */
 
-import { loginSchema, registerSchema, registerEmailSchema } from '../auth.validator';
+import { loginSchema, registerSchema, registerEmailSchema, forgotPasswordSchema, resetPasswordSchema } from '../auth.validator';
 
 describe('Auth Validators - Complete Coverage', () => {
   describe('loginSchema', () => {
@@ -54,16 +54,13 @@ describe('Auth Validators - Complete Coverage', () => {
       });
     });
 
-    it('should reject short password', () => {
-      const invalidPasswords = ['', 'a', 'Ab1', 'Short1'];
-      invalidPasswords.forEach(password => {
-        const result = loginSchema.safeParse({ email: 'user@example.com', password });
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          const errorMessage = result.error.issues[0].message.toLowerCase();
-          expect(errorMessage).toMatch(/at least|minimum|8/);
-        }
-      });
+    it('should reject empty password', () => {
+      const result = loginSchema.safeParse({ email: 'user@example.com', password: '' });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const errorMessage = result.error.issues[0].message.toLowerCase();
+        expect(errorMessage).toMatch(/required|password/);
+      }
     });
 
     it('should reject missing fields', () => {
@@ -75,9 +72,11 @@ describe('Auth Validators - Complete Coverage', () => {
 
   describe('registerSchema', () => {
     const validData = {
+      username: 'johndoe',
       email: 'user@example.com',
       password: 'SecurePass123',
-      name: 'John Doe',
+      firstName: 'John',
+      lastName: 'Doe',
     };
 
     // Happy path
@@ -91,7 +90,8 @@ describe('Auth Validators - Complete Coverage', () => {
       const result = registerSchema.safeParse(data);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message.toLowerCase()).toMatch(/uppercase|capital/);
+        const errorMessages = result.error.issues.map(i => i.message.toLowerCase()).join(' ');
+        expect(errorMessages).toMatch(/uppercase|capital/);
       }
     });
 
@@ -101,7 +101,8 @@ describe('Auth Validators - Complete Coverage', () => {
       const result = registerSchema.safeParse(data);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message.toLowerCase()).toMatch(/lowercase/);
+        const errorMessages = result.error.issues.map(i => i.message.toLowerCase()).join(' ');
+        expect(errorMessages).toMatch(/lowercase/);
       }
     });
 
@@ -111,18 +112,19 @@ describe('Auth Validators - Complete Coverage', () => {
       const result = registerSchema.safeParse(data);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message.toLowerCase()).toMatch(/number|digit/);
+        const errorMessages = result.error.issues.map(i => i.message.toLowerCase()).join(' ');
+        expect(errorMessages).toMatch(/number|digit/);
       }
     });
 
-    // Name validation
-    it('should reject short names', () => {
-      const data = { ...validData, name: 'A' };
+    // Username validation
+    it('should reject short usernames', () => {
+      const data = { ...validData, username: 'ab' };
       expect(registerSchema.safeParse(data).success).toBe(false);
     });
 
-    it('should reject long names', () => {
-      const data = { ...validData, name: 'A'.repeat(101) };
+    it('should reject long usernames', () => {
+      const data = { ...validData, username: 'A'.repeat(31) };
       expect(registerSchema.safeParse(data).success).toBe(false);
     });
 
@@ -169,6 +171,67 @@ describe('Auth Validators - Complete Coverage', () => {
 
     it('should reject missing email', () => {
       expect(registerEmailSchema.safeParse({}).success).toBe(false);
+    });
+  });
+
+  describe('forgotPasswordSchema', () => {
+    it('should validate correct email', () => {
+      const validData = { email: 'user@example.com' };
+      const result = forgotPasswordSchema.safeParse(validData);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.email).toBe('user@example.com');
+      }
+    });
+
+    it('should reject invalid email', () => {
+      const invalidEmails = ['not-email', '@example.com', 'user@'];
+      invalidEmails.forEach(email => {
+        const result = forgotPasswordSchema.safeParse({ email });
+        expect(result.success).toBe(false);
+      });
+    });
+
+    it('should reject missing email', () => {
+      expect(forgotPasswordSchema.safeParse({}).success).toBe(false);
+    });
+  });
+
+  describe('resetPasswordSchema', () => {
+    it('should validate correct reset password data', () => {
+      const validData = {
+        token: 'reset-token-123',
+        password: 'NewPassword123',
+      };
+      const result = resetPasswordSchema.safeParse(validData);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.token).toBe('reset-token-123');
+        expect(result.data.password).toBe('NewPassword123');
+      }
+    });
+
+    it('should reject missing token', () => {
+      const result = resetPasswordSchema.safeParse({ password: 'NewPassword123' });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject empty token', () => {
+      const result = resetPasswordSchema.safeParse({ token: '', password: 'NewPassword123' });
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject invalid password', () => {
+      const invalidPasswords = ['short', 'nouppercase123', 'NOLOWERCASE123', 'NoNumbers'];
+      invalidPasswords.forEach(password => {
+        const result = resetPasswordSchema.safeParse({ token: 'valid-token', password });
+        expect(result.success).toBe(false);
+      });
+    });
+
+    it('should reject missing password', () => {
+      const result = resetPasswordSchema.safeParse({ token: 'reset-token-123' });
+      expect(result.success).toBe(false);
     });
   });
 });

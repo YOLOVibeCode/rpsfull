@@ -9,7 +9,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL || 'postgresql://rpsfull_test:test_password_change_in_production@localhost:5433/rpsfull_test',
+      url: process.env['DATABASE_URL'] || 'postgresql://rpsfull_test:test_password_change_in_production@localhost:5433/rpsfull_test',
     },
   },
 });

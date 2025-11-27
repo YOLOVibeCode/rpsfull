@@ -76,3 +76,25 @@ export interface IEmailAvailabilityDto {
   message?: string;
 }
 
+/**
+ * Forgot password request DTO
+ */
+export interface IForgotPasswordDto {
+  email: string;
+}
+
+/**
+ * Reset password request DTO
+ */
+export interface IResetPasswordDto {
+  token: string;
+  password: string;
+}
+
+/**
+ * Forgot password response DTO
+ */
+export interface IForgotPasswordResponseDto {
+  message: string;
+}
+

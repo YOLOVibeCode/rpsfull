@@ -4,15 +4,18 @@
 
 import { PrismaClient } from '@prisma/client';
 import { GameTypeRepository } from '../GameTypeRepository';
+import { UserRepository } from '../UserRepository';
 import { IGameTypeCreate, IGameTypeUpdate, TieRule, ScoringMethod } from '@rpsfull-platform/contracts';
 
 describe('GameTypeRepository - Complete Coverage', () => {
   let prisma: PrismaClient;
   let repository: GameTypeRepository;
+  let userRepository: UserRepository;
 
   beforeAll(async () => {
     prisma = new PrismaClient();
     repository = new GameTypeRepository(prisma);
+    userRepository = new UserRepository(prisma);
   });
 
   afterAll(async () => {
@@ -169,6 +172,55 @@ describe('GameTypeRepository - Complete Coverage', () => {
 
       const found = await repository.findById(created.id);
       expect(found).toBeNull();
+    });
+  });
+
+  describe('findByCreator', () => {
+    it('should find game types created by specific user', async () => {
+      const user1 = await userRepository.create({
+        username: 'user1',
+        email: 'user1@test.com',
+        passwordHash: 'hash',
+      });
+
+      const user2 = await userRepository.create({
+        username: 'user2',
+        email: 'user2@test.com',
+        passwordHash: 'hash',
+      });
+
+      await repository.create({
+        name: 'User1 Game',
+        symbolCount: 3,
+        symbols: [],
+        winMatrix: {},
+        createdBy: user1.id,
+      } as IGameTypeCreate & { createdBy: string });
+
+      await repository.create({
+        name: 'User2 Game',
+        symbolCount: 3,
+        symbols: [],
+        winMatrix: {},
+        createdBy: user2.id,
+      } as IGameTypeCreate & { createdBy: string });
+
+      const user1Games = await repository.findByCreator(user1.id);
+
+      expect(user1Games.length).toBe(1);
+      expect(user1Games[0].name).toBe('User1 Game');
+    });
+
+    it('should return empty array if user has no games', async () => {
+      const user = await userRepository.create({
+        username: 'nogames',
+        email: 'nogames@test.com',
+        passwordHash: 'hash',
+      });
+
+      const games = await repository.findByCreator(user.id);
+
+      expect(games).toEqual([]);
     });
   });
 });

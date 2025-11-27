@@ -1,0 +1,7 @@
+# Frontend-specific ignore
+node_modules/
+.next/
+out/
+.env.local
+coverage/
+

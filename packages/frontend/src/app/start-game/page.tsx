@@ -73,7 +73,7 @@ export default function StartGamePage() {
     }
 
     try {
-      const response = await apiClient.post<{ success: boolean; data: InvitationResponse }>(
+      const response = await apiClient.post<InvitationResponse>(
         '/matches/create-with-invitation',
         {
           player1: {
@@ -85,8 +85,10 @@ export default function StartGamePage() {
         }
       );
 
-      setInvitationData(response.data);
+      // API client already unwraps the response.data, so response is the InvitationResponse directly
+      setInvitationData(response);
       setMode('invitation');
+      setIsLoading(false);
     } catch (error: any) {
       setErrors({
         submit: error.message || 'Failed to create game invitation. Please try again.',
@@ -433,7 +435,7 @@ export default function StartGamePage() {
                 <p className="font-medium mb-1">💡 Quick Start</p>
                 <p>
                   {mode === 'both'
-                    ? 'If an email already exists, we'll use that account and add this game to their history. New emails will create accounts automatically.'
+                    ? 'If an email already exists, we will use that account and add this game to their history. New emails will create accounts automatically.'
                     : 'Create a shareable link or QR code that Player 2 can use to join the game remotely.'}
                 </p>
               </div>

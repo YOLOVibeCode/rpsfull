@@ -12,9 +12,13 @@ export class UserRepository implements IUserRepository {
   constructor(private prisma: PrismaClient) {}
 
   async create(data: IUserCreate): Promise<IUser> {
-    return this.prisma.user.create({
+    if (!data.email) {
+      throw new Error('Email is required to create a user');
+    }
+    
+    const result = await this.prisma.user.create({
       data: {
-        username: data.username.toLowerCase().trim(),
+        username: data.username ? data.username.toLowerCase().trim() : null,
         email: data.email.toLowerCase().trim(),
         firstName: data.firstName,
         lastName: data.lastName,
@@ -24,30 +28,65 @@ export class UserRepository implements IUserRepository {
         isActive: true,
       },
     });
+    return {
+      ...result,
+      firstName: result.firstName ?? undefined,
+      lastName: result.lastName ?? undefined,
+      verificationToken: result.verificationToken ?? undefined,
+      resetToken: result.resetToken ?? undefined,
+      resetTokenExpiry: result.resetTokenExpiry ?? undefined,
+    } as IUser;
   }
 
   async findById(id: string): Promise<IUser | null> {
-    return this.prisma.user.findUnique({
+    const result = await this.prisma.user.findUnique({
       where: { id },
     });
+    if (!result) return null;
+    return {
+      ...result,
+      firstName: result.firstName ?? undefined,
+      lastName: result.lastName ?? undefined,
+      verificationToken: result.verificationToken ?? undefined,
+      resetToken: result.resetToken ?? undefined,
+      resetTokenExpiry: result.resetTokenExpiry ?? undefined,
+    } as IUser;
   }
 
   async findByEmail(email: string): Promise<IUser | null> {
-    return this.prisma.user.findFirst({
+    const result = await this.prisma.user.findFirst({
       where: { 
         email: email.toLowerCase().trim(),
         deletedAt: null,
       },
     });
+    if (!result) return null;
+    return {
+      ...result,
+      firstName: result.firstName ?? undefined,
+      lastName: result.lastName ?? undefined,
+      verificationToken: result.verificationToken ?? undefined,
+      resetToken: result.resetToken ?? undefined,
+      resetTokenExpiry: result.resetTokenExpiry ?? undefined,
+    } as IUser;
   }
 
   async findByUsername(username: string): Promise<IUser | null> {
-    return this.prisma.user.findFirst({
+    const result = await this.prisma.user.findFirst({
       where: {
         username: username.toLowerCase().trim(),
         deletedAt: null,
       },
     });
+    if (!result) return null;
+    return {
+      ...result,
+      firstName: result.firstName ?? undefined,
+      lastName: result.lastName ?? undefined,
+      verificationToken: result.verificationToken ?? undefined,
+      resetToken: result.resetToken ?? undefined,
+      resetTokenExpiry: result.resetTokenExpiry ?? undefined,
+    } as IUser;
   }
 
   async findByUsernameOrEmail(identifier: string): Promise<IUser | null> {
@@ -63,7 +102,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async update(id: string, data: IUserUpdate): Promise<IUser> {
-    return this.prisma.user.update({
+    const result = await this.prisma.user.update({
       where: { id },
       data: {
         ...(data.username && { username: data.username.toLowerCase().trim() }),
@@ -74,8 +113,19 @@ export class UserRepository implements IUserRepository {
         ...(data.role && { role: data.role }),
         ...(data.isEmailVerified !== undefined && { isEmailVerified: data.isEmailVerified }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
+        ...(data.verificationToken !== undefined && { verificationToken: data.verificationToken }),
+        ...(data.resetToken !== undefined && { resetToken: data.resetToken }),
+        ...(data.resetTokenExpiry !== undefined && { resetTokenExpiry: data.resetTokenExpiry }),
       },
     });
+    return {
+      ...result,
+      firstName: result.firstName ?? undefined,
+      lastName: result.lastName ?? undefined,
+      verificationToken: result.verificationToken ?? undefined,
+      resetToken: result.resetToken ?? undefined,
+      resetTokenExpiry: result.resetTokenExpiry ?? undefined,
+    } as IUser;
   }
 
   async delete(id: string): Promise<void> {
@@ -112,12 +162,39 @@ export class UserRepository implements IUserRepository {
   }
 
   async findByVerificationToken(token: string): Promise<IUser | null> {
-    return this.prisma.user.findFirst({
+    const result = await this.prisma.user.findFirst({
       where: {
         verificationToken: token,
         deletedAt: null,
       },
     });
+    if (!result) return null;
+    return {
+      ...result,
+      firstName: result.firstName ?? undefined,
+      lastName: result.lastName ?? undefined,
+      verificationToken: result.verificationToken ?? undefined,
+      resetToken: result.resetToken ?? undefined,
+      resetTokenExpiry: result.resetTokenExpiry ?? undefined,
+    } as IUser;
+  }
+
+  async findByResetToken(token: string): Promise<IUser | null> {
+    const result = await this.prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        deletedAt: null,
+      },
+    });
+    if (!result) return null;
+    return {
+      ...result,
+      firstName: result.firstName ?? undefined,
+      lastName: result.lastName ?? undefined,
+      verificationToken: result.verificationToken ?? undefined,
+      resetToken: result.resetToken ?? undefined,
+      resetTokenExpiry: result.resetTokenExpiry ?? undefined,
+    } as IUser;
   }
 }
 

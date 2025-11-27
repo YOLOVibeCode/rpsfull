@@ -18,7 +18,7 @@ export class MatchRepository implements IMatchRepository {
   constructor(private prisma: PrismaClient) {}
 
   async create(data: IMatchCreate): Promise<IMatch> {
-    return this.prisma.match.create({
+    const result = await this.prisma.match.create({
       data: {
         player1Id: data.player1Id,
         player2Id: data.player2Id,
@@ -38,36 +38,64 @@ export class MatchRepository implements IMatchRepository {
         invitationCreatedAt: data.invitationCreatedAt,
       },
     });
+    
+    // Convert null to undefined for optional fields
+    return {
+      ...result,
+      player2Id: result.player2Id ?? undefined,
+      tournamentId: result.tournamentId ?? undefined,
+    } as IMatch;
   }
 
   async findById(id: string): Promise<IMatch | null> {
-    return this.prisma.match.findUnique({
+    const result = await this.prisma.match.findUnique({
       where: { id },
     });
+    
+    if (!result) return null;
+    
+    // Convert null to undefined for optional fields
+    return {
+      ...result,
+      player2Id: result.player2Id ?? undefined,
+      tournamentId: result.tournamentId ?? undefined,
+    } as IMatch;
   }
 
   async findByPlayerId(
     playerId: string,
     filters?: { status?: MatchStatus }
   ): Promise<IMatch[]> {
-    return this.prisma.match.findMany({
+    const results = await this.prisma.match.findMany({
       where: {
         OR: [{ player1Id: playerId }, { player2Id: playerId }],
         ...(filters?.status && { status: filters.status }),
       },
       orderBy: { createdAt: 'desc' },
     });
+    
+    // Convert null to undefined for optional fields
+    return results.map(result => ({
+      ...result,
+      player2Id: result.player2Id ?? undefined,
+      tournamentId: result.tournamentId ?? undefined,
+    })) as IMatch[];
   }
 
   async findByTournamentId(tournamentId: string): Promise<IMatch[]> {
-    return this.prisma.match.findMany({
+    const results = await this.prisma.match.findMany({
       where: { tournamentId },
       orderBy: { createdAt: 'asc' },
     });
+    return results.map((result) => ({
+      ...result,
+      player2Id: result.player2Id ?? undefined,
+      tournamentId: result.tournamentId ?? undefined,
+    })) as IMatch[];
   }
 
   async update(id: string, data: IMatchUpdate): Promise<IMatch> {
-    return this.prisma.match.update({
+    const result = await this.prisma.match.update({
       where: { id },
       data: {
         ...(data.status && { status: data.status }),
@@ -82,6 +110,11 @@ export class MatchRepository implements IMatchRepository {
         ...(data.completedAt !== undefined && { completedAt: data.completedAt }),
       },
     });
+    return {
+      ...result,
+      player2Id: result.player2Id ?? undefined,
+      tournamentId: result.tournamentId ?? undefined,
+    } as IMatch;
   }
 
   async delete(id: string): Promise<void> {
@@ -91,11 +124,17 @@ export class MatchRepository implements IMatchRepository {
   }
 
   async findByInvitationToken(token: string): Promise<IMatch | null> {
-    return this.prisma.match.findFirst({
+    const result = await this.prisma.match.findFirst({
       where: {
         invitationToken: token,
       },
     });
+    if (!result) return null;
+    return {
+      ...result,
+      player2Id: result.player2Id ?? undefined,
+      tournamentId: result.tournamentId ?? undefined,
+    } as IMatch;
   }
 }
 

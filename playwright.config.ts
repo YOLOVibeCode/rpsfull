@@ -6,13 +6,17 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   /* Run tests in files in parallel */
-  fullyParallel: true,
+  fullyParallel: false, // Set to false to avoid rate limiting issues in auth tests
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
+  /* Continue running all tests even if some fail (non-blocking) */
+  maxFailures: undefined, // No limit - run all tests regardless of failures
+  /* Timeout for each test */
+  timeout: 60 * 1000, // 60 seconds per test
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -54,10 +58,15 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: [
     {
-      command: 'cd packages/backend && pnpm dev',
-      url: 'http://localhost:4444',
+      command: 'cd packages/backend && TEST_MODE=true PLAYWRIGHT=true pnpm dev',
+      url: 'http://localhost:4444/health',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
+      env: {
+        TEST_MODE: 'true',
+        PLAYWRIGHT: 'true',
+        NODE_ENV: 'test',
+      },
     },
     {
       command: 'cd packages/frontend && pnpm dev',

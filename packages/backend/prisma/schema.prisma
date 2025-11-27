@@ -176,6 +176,10 @@ model Tournament {
   startDate           DateTime? @map("start_date")
   endDate             DateTime? @map("end_date")
   registrationDeadline DateTime? @map("registration_deadline")
+  invitationToken      String?   @unique @map("invitation_token")
+  invitationExpiresAt  DateTime? @map("invitation_expires_at")
+  invitationCreatedAt  DateTime? @map("invitation_created_at")
+  invitationEnabled    Boolean   @default(false) @map("invitation_enabled")
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
   
@@ -183,11 +187,31 @@ model Tournament {
   gameType          GameType            @relation(fields: [gameTypeId], references: [id])
   matches           Match[]
   entries           TournamentEntry[]
+  registrationTokens TournamentRegistrationToken[]
   
   @@index([organizerId])
   @@index([status])
   @@index([gameTypeId])
+  @@index([invitationToken])
   @@map("Tournament")
+}
+
+model TournamentRegistrationToken {
+  id            String    @id @default(uuid())
+  tournamentId  String    @map("tournament_id")
+  email         String
+  token         String    @unique
+  firstName     String?   @map("first_name")
+  lastName      String?   @map("last_name")
+  expiresAt     DateTime  @map("expires_at")
+  usedAt        DateTime? @map("used_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  
+  tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  
+  @@index([token])
+  @@index([email, tournamentId])
+  @@map("TournamentRegistrationToken")
 }
 
 model TournamentEntry {

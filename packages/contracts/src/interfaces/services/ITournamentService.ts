@@ -5,7 +5,7 @@
  */
 
 import { ITournament, ITournamentCreate, ITournamentWithDetails } from '../../entities/Tournament.entity';
-import { ICreateTournamentDto, IRegisterTournamentDto } from '../../dtos/tournament.dto';
+import { ICreateTournamentDto, IRegisterTournamentDto, IPublicTournamentDto } from '../../dtos/tournament.dto';
 import { TournamentStatus } from '../../enums';
 
 /**
@@ -22,6 +22,12 @@ export interface ITournamentService {
    * Get tournament by ID
    */
   getTournamentById(tournamentId: string): Promise<ITournamentWithDetails>;
+
+  /**
+   * Get public tournament information (no authentication required)
+   * Returns limited data without sensitive information
+   */
+  getPublicTournamentById(tournamentId: string): Promise<IPublicTournamentDto>;
 
   /**
    * Get tournaments list

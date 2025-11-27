@@ -16,7 +16,7 @@ export const createTournamentSchema = z.object({
     .min(2, 'Tournament name must be at least 2 characters')
     .max(200, 'Tournament name must be less than 200 characters'),
   description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
-  gameTypeId: z.string().uuid('Invalid game type ID format'),
+  gameTypeId: z.string().min(1, 'Game type ID is required'), // Accept any non-empty string (UUID or string ID)
   tournamentType: z.nativeEnum(TournamentType, {
     errorMap: () => ({ message: 'Invalid tournament type' }),
   }),
@@ -33,8 +33,26 @@ export const createTournamentSchema = z.object({
     .optional(),
   rules: z.string().max(5000, 'Rules must be less than 5000 characters').optional(),
   prizeInfo: z.string().max(1000, 'Prize info must be less than 1000 characters').optional(),
-  startDate: z.date().optional(),
-  registrationDeadline: z.date().optional(),
+  startDate: z.union([
+    z.date(),
+    z.string().transform((val) => {
+      // Handle date strings in YYYY-MM-DD format
+      if (val.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return new Date(val + 'T00:00:00Z');
+      }
+      return new Date(val);
+    }),
+  ]).optional(),
+  registrationDeadline: z.union([
+    z.date(),
+    z.string().transform((val) => {
+      // Handle date strings in YYYY-MM-DD format
+      if (val.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return new Date(val + 'T00:00:00Z');
+      }
+      return new Date(val);
+    }),
+  ]).optional(),
 });
 
 /**

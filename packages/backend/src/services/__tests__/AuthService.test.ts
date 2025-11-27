@@ -11,7 +11,7 @@ import { PrismaClient } from '@prisma/client';
 import { AuthService } from '../AuthService';
 import { UserRepository } from '../../repositories/UserRepository';
 import { PlayerRepository } from '../../repositories/PlayerRepository';
-import { IRegisterDto, ILoginDto, IRegisterEmailDto, UserRole } from '@rpsfull-platform/contracts';
+import { IRegisterDto, ILoginDto, IRegisterEmailDto, IForgotPasswordDto, IResetPasswordDto, UserRole } from '@rpsfull-platform/contracts';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 
@@ -268,6 +268,197 @@ describe('AuthService - Complete Coverage', () => {
 
     it('should throw error for non-existent user', async () => {
       await expect(authService.getCurrentUser('non-existent')).rejects.toThrow();
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('should generate reset token for existing user', async () => {
+      const email = 'reset@example.com';
+      await userRepository.create({
+        email,
+        passwordHash: 'hash',
+      });
+
+      const data: IForgotPasswordDto = { email };
+      const result = await authService.forgotPassword(data);
+
+      expect(result.message).toContain('Password reset email sent');
+      
+      // Verify reset token was generated
+      const user = await userRepository.findByEmail(email);
+      expect(user?.resetToken).toBeDefined();
+      expect(user?.resetTokenExpiry).toBeDefined();
+    });
+
+    it('should not reveal if email does not exist (security)', async () => {
+      const data: IForgotPasswordDto = { email: 'nonexistent@example.com' };
+      
+      // Should not throw error, but also not generate token
+      const result = await authService.forgotPassword(data);
+      expect(result.message).toContain('Password reset email sent');
+    });
+
+    it('should set reset token expiry to 1 hour from now', async () => {
+      const email = 'expiry@example.com';
+      await userRepository.create({
+        email,
+        passwordHash: 'hash',
+      });
+
+      const data: IForgotPasswordDto = { email };
+      await authService.forgotPassword(data);
+
+      const user = await userRepository.findByEmail(email);
+      expect(user?.resetTokenExpiry).toBeDefined();
+      
+      if (user?.resetTokenExpiry) {
+        const expiryTime = new Date(user.resetTokenExpiry).getTime();
+        const now = Date.now();
+        const oneHour = 60 * 60 * 1000;
+        
+        // Should be approximately 1 hour from now (allow 5 second tolerance)
+        expect(expiryTime).toBeGreaterThan(now);
+        expect(expiryTime).toBeLessThan(now + oneHour + 5000);
+      }
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('should reset password with valid token', async () => {
+      const email = 'resetpass@example.com';
+      const newPassword = 'NewPassword123!';
+      const resetToken = 'valid_reset_token';
+
+      const user = await userRepository.create({
+        email,
+        passwordHash: 'old_hash',
+      });
+
+      // Set reset token
+      const expiryDate = new Date();
+      expiryDate.setHours(expiryDate.getHours() + 1);
+      await userRepository.update(user.id, {
+        resetToken,
+        resetTokenExpiry: expiryDate,
+      });
+
+      (bcrypt.hash as jest.Mock).mockResolvedValue('new_hashed_password');
+
+      const data: IResetPasswordDto = {
+        token: resetToken,
+        password: newPassword,
+      };
+
+      await authService.resetPassword(data);
+
+      // Verify password was updated
+      expect(bcrypt.hash).toHaveBeenCalledWith(newPassword, 10);
+      
+      // Verify reset token was cleared
+      const updatedUser = await userRepository.findById(user.id);
+      expect(updatedUser?.resetToken).toBeNull();
+      expect(updatedUser?.resetTokenExpiry).toBeNull();
+    });
+
+    it('should throw error for invalid token', async () => {
+      const data: IResetPasswordDto = {
+        token: 'invalid_token',
+        password: 'NewPassword123!',
+      };
+
+      await expect(authService.resetPassword(data)).rejects.toThrow('Invalid or expired reset token');
+    });
+
+    it('should throw error for expired token', async () => {
+      const email = 'expired@example.com';
+      const resetToken = 'expired_token';
+
+      const user = await userRepository.create({
+        email,
+        passwordHash: 'hash',
+      });
+
+      // Set expired token (1 hour ago)
+      const expiredDate = new Date();
+      expiredDate.setHours(expiredDate.getHours() - 1);
+      await userRepository.update(user.id, {
+        resetToken,
+        resetTokenExpiry: expiredDate,
+      });
+
+      const data: IResetPasswordDto = {
+        token: resetToken,
+        password: 'NewPassword123!',
+      };
+
+      await expect(authService.resetPassword(data)).rejects.toThrow('Invalid or expired reset token');
+    });
+
+    it('should hash new password before storing', async () => {
+      const email = 'hashnew@example.com';
+      const newPassword = 'NewPassword123!';
+      const resetToken = 'token_for_hash';
+
+      const user = await userRepository.create({
+        email,
+        passwordHash: 'old_hash',
+      });
+
+      const expiryDate = new Date();
+      expiryDate.setHours(expiryDate.getHours() + 1);
+      await userRepository.update(user.id, {
+        resetToken,
+        resetTokenExpiry: expiryDate,
+      });
+
+      (bcrypt.hash as jest.Mock).mockResolvedValue('new_hashed_password');
+
+      const data: IResetPasswordDto = {
+        token: resetToken,
+        password: newPassword,
+      };
+
+      await authService.resetPassword(data);
+
+      expect(bcrypt.hash).toHaveBeenCalledWith(newPassword, 10);
+    });
+  });
+
+  describe('resendVerificationEmail', () => {
+    it('should generate new verification token for existing user', async () => {
+      const email = 'resend@example.com';
+      await userRepository.create({
+        email,
+        passwordHash: 'hash',
+      });
+
+      const result = await authService.resendVerificationEmail(email);
+
+      expect(result.message).toContain('Verification email sent');
+      
+      // Verify new verification token was generated
+      const user = await userRepository.findByEmail(email);
+      expect(user?.verificationToken).toBeDefined();
+    });
+
+    it('should not reveal if email does not exist (security)', async () => {
+      const result = await authService.resendVerificationEmail('nonexistent@example.com');
+      expect(result.message).toContain('Verification email sent');
+    });
+
+    it('should not resend if email already verified', async () => {
+      const email = 'verified@example.com';
+      const user = await userRepository.create({
+        email,
+        passwordHash: 'hash',
+      });
+
+      await userRepository.update(user.id, {
+        isEmailVerified: true,
+      });
+
+      const result = await authService.resendVerificationEmail(email);
+      expect(result.message).toContain('already verified');
     });
   });
 });

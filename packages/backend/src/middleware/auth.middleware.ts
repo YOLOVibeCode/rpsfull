@@ -22,7 +22,7 @@ export interface AuthenticatedRequest extends Request {
  */
 export function authMiddleware(
   req: AuthenticatedRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void {
   const authHeader = req.headers.authorization;
@@ -36,7 +36,7 @@ export function authMiddleware(
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || 'secret'
+      process.env['JWT_SECRET'] || 'secret'
     ) as { userId: string; email?: string; role?: string };
 
     req.user = {

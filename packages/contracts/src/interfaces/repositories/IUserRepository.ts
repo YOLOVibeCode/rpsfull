@@ -60,5 +60,10 @@ export interface IUserRepository {
    * Find user by verification token
    */
   findByVerificationToken(token: string): Promise<IUser | null>;
+
+  /**
+   * Find user by password reset token
+   */
+  findByResetToken(token: string): Promise<IUser | null>;
 }
 

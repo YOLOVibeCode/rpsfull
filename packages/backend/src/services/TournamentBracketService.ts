@@ -101,7 +101,7 @@ export class TournamentBracketService implements ITournamentBracketService {
 
   private createBracketData(
     participantCount: number,
-    tournamentType: string
+    _tournamentType: string
   ): {
     rounds: Array<{
       round: number;

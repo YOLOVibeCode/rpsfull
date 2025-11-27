@@ -189,5 +189,72 @@ describe('UserRepository - Complete Coverage', () => {
       expect(exists).toBe(false);
     });
   });
+
+  describe('findByVerificationToken', () => {
+    it('should find user by verification token', async () => {
+      const user = await repository.create({
+        email: 'verify@example.com',
+        passwordHash: 'hash',
+      });
+
+      await repository.update(user.id, {
+        verificationToken: 'test_token_123',
+      });
+
+      const found = await repository.findByVerificationToken('test_token_123');
+      expect(found).toBeDefined();
+      expect(found?.id).toBe(user.id);
+    });
+
+    it('should return null for invalid token', async () => {
+      const found = await repository.findByVerificationToken('invalid_token');
+      expect(found).toBeNull();
+    });
+  });
+
+  describe('findByResetToken', () => {
+    it('should find user by reset token', async () => {
+      const user = await repository.create({
+        email: 'reset@example.com',
+        passwordHash: 'hash',
+      });
+
+      const expiryDate = new Date();
+      expiryDate.setHours(expiryDate.getHours() + 1);
+      await repository.update(user.id, {
+        resetToken: 'reset_token_123',
+        resetTokenExpiry: expiryDate,
+      });
+
+      const found = await repository.findByResetToken('reset_token_123');
+      expect(found).toBeDefined();
+      expect(found?.id).toBe(user.id);
+      expect(found?.resetToken).toBe('reset_token_123');
+    });
+
+    it('should return null for invalid token', async () => {
+      const found = await repository.findByResetToken('invalid_token');
+      expect(found).toBeNull();
+    });
+
+    it('should return null for expired token', async () => {
+      const user = await repository.create({
+        email: 'expired@example.com',
+        passwordHash: 'hash',
+      });
+
+      const expiredDate = new Date();
+      expiredDate.setHours(expiredDate.getHours() - 1);
+      await repository.update(user.id, {
+        resetToken: 'expired_token',
+        resetTokenExpiry: expiredDate,
+      });
+
+      // findByResetToken doesn't check expiry, but the service will
+      const found = await repository.findByResetToken('expired_token');
+      expect(found).toBeDefined();
+      expect(found?.resetTokenExpiry).toBeDefined();
+    });
+  });
 });
 

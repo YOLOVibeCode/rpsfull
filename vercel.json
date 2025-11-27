@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "buildCommand": "cd ../.. && pnpm install && pnpm contracts:build && pnpm --filter @rpsfull-platform/frontend build",
+  "outputDirectory": "packages/frontend/.next",
+  "installCommand": "cd ../.. && pnpm install",
+  "framework": "nextjs",
+  "rootDirectory": "packages/frontend"
+}
+

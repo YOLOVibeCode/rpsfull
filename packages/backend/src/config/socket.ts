@@ -6,8 +6,9 @@
 
 import { Server as HttpServer } from 'http';
 import { Server as SocketServer, Socket } from 'socket.io';
-import { authMiddleware } from '../middleware/auth.middleware';
-import { AuthenticatedRequest } from '../middleware/auth.middleware';
+
+// Export SocketServer type
+export type { SocketServer };
 
 export interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -24,7 +25,7 @@ export interface AuthenticatedSocket extends Socket {
 export function createSocketServer(httpServer: HttpServer): SocketServer {
   const io = new SocketServer(httpServer, {
     cors: {
-      origin: process.env.CORS_ORIGIN || '*',
+      origin: process.env['CORS_ORIGIN'] || '*',
       credentials: true,
     },
     path: '/socket.io',
@@ -33,7 +34,7 @@ export function createSocketServer(httpServer: HttpServer): SocketServer {
   // Authentication middleware for Socket.io
   io.use(async (socket: AuthenticatedSocket, next) => {
     try {
-      const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
+      const token = socket.handshake.auth?.['token'] || socket.handshake.headers?.['authorization']?.replace('Bearer ', '');
 
       if (!token) {
         return next(new Error('Authentication error: No token provided'));
@@ -41,7 +42,7 @@ export function createSocketServer(httpServer: HttpServer): SocketServer {
 
       // Verify JWT token (simplified - in production, use proper JWT verification)
       const jwt = require('jsonwebtoken');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as {
+      const decoded = jwt.verify(token, process.env['JWT_SECRET'] || 'secret') as {
         userId: string;
         email?: string;
         role?: string;

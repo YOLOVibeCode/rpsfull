@@ -45,7 +45,7 @@ export function setupMatchHandlers(io: SocketServer): void {
     });
 
     // Submit move
-    socket.on('match:move', async (data: { matchId: string; move: string }) => {
+    socket.on('match:move', async (data: { matchId: string; move: string; roundNumber?: number }) => {
       try {
         if (!socket.userId) {
           socket.emit(SocketEvents.ERROR, { message: 'Not authenticated' });

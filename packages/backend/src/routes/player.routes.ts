@@ -55,7 +55,14 @@ export function setupPlayerRoutes(): Router {
    */
   router.get('/:id', async (req, res: Response) => {
     try {
-      const player = await playerRepository.findById(req.params.id);
+      const playerId = req.params['id'];
+      if (!playerId) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'VAL_001', message: 'Player ID is required' },
+        });
+      }
+      const player = await playerRepository.findById(playerId);
 
       if (!player) {
         return res.status(404).json({
@@ -67,12 +74,12 @@ export function setupPlayerRoutes(): Router {
         });
       }
 
-      res.json({
+      return res.json({
         success: true,
         data: player,
       });
     } catch (error: any) {
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_ERROR',

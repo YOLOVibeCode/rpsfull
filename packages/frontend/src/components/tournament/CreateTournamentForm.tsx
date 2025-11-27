@@ -7,10 +7,21 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ICreateTournamentDto, TournamentType } from '@rpsfull-platform/contracts';
 
+// Form state interface (uses 'type' for form field)
+interface TournamentFormData {
+  name: string;
+  description: string;
+  type: TournamentType; // Form uses 'type'
+  gameTypeId: string;
+  bestOfN: number;
+  maxParticipants: number;
+  startDate: string; // Form uses string for date input
+}
+
 export function CreateTournamentForm() {
   const router = useRouter();
   const createTournament = useCreateTournament();
-  const [formData, setFormData] = useState<ICreateTournamentDto>({
+  const [formData, setFormData] = useState<TournamentFormData>({
     name: '',
     description: '',
     type: TournamentType.SINGLE_ELIMINATION,
@@ -26,7 +37,19 @@ export function CreateTournamentForm() {
     setErrors({});
 
     try {
-      const tournament = await createTournament.mutateAsync(formData);
+      // Transform form data to match backend expectations
+      const apiData: ICreateTournamentDto = {
+        name: formData.name,
+        description: formData.description || undefined,
+        gameTypeId: formData.gameTypeId,
+        tournamentType: formData.type as any, // Transform 'type' to 'tournamentType'
+        bestOfN: formData.bestOfN,
+        maxParticipants: formData.maxParticipants,
+        // Don't send startDate if empty - backend will handle it
+        // If provided, send as ISO string - backend validator will transform it
+      };
+      
+      const tournament = await createTournament.mutateAsync(apiData);
       router.push(`/tournaments/${tournament.id}`);
     } catch (error: any) {
       setErrors({ submit: error.message || 'Failed to create tournament' });

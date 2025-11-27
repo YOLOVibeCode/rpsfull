@@ -23,7 +23,13 @@ export function setupStatsRoutes(): Router {
       const { gameTypeId } = req.query;
 
       // Get player ID from user
-      const player = await playerRepository.findByUserId(req.user!.id);
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: { code: 'AUTH_001', message: 'Not authenticated' },
+        });
+      }
+      const player = await playerRepository.findByUserId(req.user['id']);
       if (!player) {
         return res.status(404).json({
           success: false,
@@ -39,12 +45,12 @@ export function setupStatsRoutes(): Router {
         gameTypeId as string | undefined
       );
 
-      res.json({
+      return res.json({
         success: true,
         data: result,
       });
     } catch (error: any) {
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
@@ -58,7 +64,7 @@ export function setupStatsRoutes(): Router {
    * GET /api/v1/stats/head-to-head
    * Get head-to-head statistics
    */
-  router.get('/head-to-head', async (req, res: Response) => {
+  router.get('/head-to-head', async (req, res: Response): Promise<void> => {
     try {
       const { player1Id, player2Id, gameTypeId } = req.query;
 

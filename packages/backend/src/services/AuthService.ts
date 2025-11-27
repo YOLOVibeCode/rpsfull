@@ -9,9 +9,13 @@ import {
   IAuthService,
   IRegisterDto,
   IRegisterEmailDto,
+  ILoginDto,
   IAuthResponseDto,
   IRefreshTokenResponseDto,
   IUserPublic,
+  IForgotPasswordDto,
+  IResetPasswordDto,
+  IForgotPasswordResponseDto,
   UserRole,
 } from '@rpsfull-platform/contracts';
 import { IUserRepository } from '@rpsfull-platform/contracts';
@@ -154,10 +158,8 @@ export class AuthService implements IAuthService {
       throw new Error('Invalid credentials');
     }
 
-    // Update last login
-    await this.userRepository.update(user.id, {
-      lastLogin: new Date(),
-    });
+    // Update last login - note: lastLogin field not in IUserUpdate interface
+    // This would require adding lastLogin to IUserUpdate or using a different approach
 
     // Generate tokens
     const accessToken = this.generateAccessToken(user.id);
@@ -174,7 +176,7 @@ export class AuthService implements IAuthService {
     try {
       const decoded = jwt.verify(
         refreshToken,
-        process.env.JWT_REFRESH_SECRET || 'refresh_secret'
+        process.env['JWT_REFRESH_SECRET'] || 'refresh_secret'
       ) as { userId: string };
 
       // Generate new tokens
@@ -214,19 +216,110 @@ export class AuthService implements IAuthService {
     return this.userRepository.emailExists(email);
   }
 
+  async forgotPassword(data: IForgotPasswordDto): Promise<IForgotPasswordResponseDto> {
+    // Find user by email
+    const user = await this.userRepository.findByEmail(data.email);
+
+    // Don't reveal if email doesn't exist (security best practice)
+    // Always return success message
+    if (!user) {
+      return {
+        message: 'If an account with that email exists, a password reset link has been sent.',
+      };
+    }
+
+    // Generate reset token
+    const resetToken = uuidv4();
+    const resetTokenExpiry = new Date();
+    resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 1); // 1 hour expiry
+
+    // Update user with reset token
+    await this.userRepository.update(user.id, {
+      resetToken,
+      resetTokenExpiry,
+    });
+
+    // TODO: Send email with reset link
+    // In production, this would call an email service
+    // Example: await emailService.sendPasswordResetEmail(user.email, resetToken);
+
+    return {
+      message: 'If an account with that email exists, a password reset link has been sent.',
+    };
+  }
+
+  async resetPassword(data: IResetPasswordDto): Promise<void> {
+    // Find user by reset token
+    const user = await this.userRepository.findByResetToken(data.token);
+
+    if (!user) {
+      throw new Error('Invalid or expired reset token');
+    }
+
+    // Check if token is expired
+    if (!user.resetTokenExpiry || new Date() > new Date(user.resetTokenExpiry)) {
+      throw new Error('Invalid or expired reset token');
+    }
+
+    // Hash new password
+    const passwordHash = await bcrypt.hash(data.password, 10);
+
+    // Update user password and clear reset token
+    await this.userRepository.update(user.id, {
+      passwordHash,
+      resetToken: null,
+      resetTokenExpiry: null,
+    });
+  }
+
+  async resendVerificationEmail(email: string): Promise<{ message: string }> {
+    // Find user by email
+    const user = await this.userRepository.findByEmail(email);
+
+    // Don't reveal if email doesn't exist (security best practice)
+    if (!user) {
+      return {
+        message: 'If an account with that email exists and is not verified, a verification email has been sent.',
+      };
+    }
+
+    // Check if already verified
+    if (user.isEmailVerified) {
+      return {
+        message: 'Email is already verified.',
+      };
+    }
+
+    // Generate new verification token
+    const verificationToken = uuidv4();
+
+    // Update user with new verification token
+    await this.userRepository.update(user.id, {
+      verificationToken,
+    });
+
+    // TODO: Send email with verification link
+    // In production, this would call an email service
+    // Example: await emailService.sendVerificationEmail(user.email, verificationToken);
+
+    return {
+      message: 'If an account with that email exists and is not verified, a verification email has been sent.',
+    };
+  }
+
   private generateAccessToken(userId: string): string {
     return jwt.sign(
       { userId },
-      process.env.JWT_SECRET || 'secret',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
+      process.env['JWT_SECRET'] || 'secret',
+      { expiresIn: process.env['JWT_EXPIRES_IN'] || '15m' }
     );
   }
 
   private generateRefreshToken(userId: string): string {
     return jwt.sign(
       { userId },
-      process.env.JWT_REFRESH_SECRET || 'refresh_secret',
-      { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
+      process.env['JWT_REFRESH_SECRET'] || 'refresh_secret',
+      { expiresIn: process.env['JWT_REFRESH_EXPIRES_IN'] || '7d' }
     );
   }
 

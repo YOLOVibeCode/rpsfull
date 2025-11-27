@@ -18,7 +18,7 @@ export class TournamentRepository implements ITournamentRepository {
   constructor(private prisma: PrismaClient) {}
 
   async create(data: ITournamentCreate, organizerId: string): Promise<ITournament> {
-    return this.prisma.tournament.create({
+    const result = await this.prisma.tournament.create({
       data: {
         name: data.name,
         description: data.description,
@@ -37,37 +37,87 @@ export class TournamentRepository implements ITournamentRepository {
         matchFormat: 'best_of_n',
       },
     });
+    return {
+      ...result,
+      description: result.description ?? undefined,
+      bracketData: result.bracketData ?? undefined,
+      startDate: result.startDate ?? undefined,
+      endDate: result.endDate ?? undefined,
+    } as ITournament;
   }
 
   async findById(id: string): Promise<ITournament | null> {
-    return this.prisma.tournament.findUnique({
+    const result = await this.prisma.tournament.findUnique({
       where: { id },
     });
+    if (!result) return null;
+    return {
+      ...result,
+      description: result.description ?? undefined,
+      bracketData: result.bracketData ?? undefined,
+      startDate: result.startDate ?? undefined,
+      endDate: result.endDate ?? undefined,
+    } as ITournament;
+  }
+
+  async findByInvitationToken(token: string): Promise<ITournament | null> {
+    const result = await this.prisma.tournament.findUnique({
+      where: { invitationToken: token },
+    });
+    if (!result) return null;
+    return {
+      ...result,
+      description: result.description ?? undefined,
+      bracketData: result.bracketData ?? undefined,
+      startDate: result.startDate ?? undefined,
+      endDate: result.endDate ?? undefined,
+    } as ITournament;
   }
 
   async findByOrganizerId(organizerId: string): Promise<ITournament[]> {
-    return this.prisma.tournament.findMany({
+    const results = await this.prisma.tournament.findMany({
       where: { organizerId },
       orderBy: { createdAt: 'desc' },
     });
+    return results.map((result) => ({
+      ...result,
+      description: result.description ?? undefined,
+      bracketData: result.bracketData ?? undefined,
+      startDate: result.startDate ?? undefined,
+      endDate: result.endDate ?? undefined,
+    })) as ITournament[];
   }
 
   async findByStatus(status: TournamentStatus): Promise<ITournament[]> {
-    return this.prisma.tournament.findMany({
+    const results = await this.prisma.tournament.findMany({
       where: { status },
       orderBy: { createdAt: 'desc' },
     });
+    return results.map((result) => ({
+      ...result,
+      description: result.description ?? undefined,
+      bracketData: result.bracketData ?? undefined,
+      startDate: result.startDate ?? undefined,
+      endDate: result.endDate ?? undefined,
+    })) as ITournament[];
   }
 
   async findAll(filters?: { status?: TournamentStatus }): Promise<ITournament[]> {
-    return this.prisma.tournament.findMany({
+    const results = await this.prisma.tournament.findMany({
       where: filters?.status ? { status: filters.status } : undefined,
       orderBy: { createdAt: 'desc' },
     });
+    return results.map((result) => ({
+      ...result,
+      description: result.description ?? undefined,
+      bracketData: result.bracketData ?? undefined,
+      startDate: result.startDate ?? undefined,
+      endDate: result.endDate ?? undefined,
+    })) as ITournament[];
   }
 
   async update(id: string, data: ITournamentUpdate): Promise<ITournament> {
-    return this.prisma.tournament.update({
+    const result = await this.prisma.tournament.update({
       where: { id },
       data: {
         ...(data.name && { name: data.name }),
@@ -77,8 +127,19 @@ export class TournamentRepository implements ITournamentRepository {
         ...(data.bracketData && { bracketData: data.bracketData as any }),
         ...(data.startDate !== undefined && { startDate: data.startDate }),
         ...(data.endDate !== undefined && { endDate: data.endDate }),
+        ...(data.invitationToken !== undefined && { invitationToken: data.invitationToken }),
+        ...(data.invitationExpiresAt !== undefined && { invitationExpiresAt: data.invitationExpiresAt }),
+        ...(data.invitationCreatedAt !== undefined && { invitationCreatedAt: data.invitationCreatedAt }),
+        ...(data.invitationEnabled !== undefined && { invitationEnabled: data.invitationEnabled }),
       },
     });
+    return {
+      ...result,
+      description: result.description ?? undefined,
+      bracketData: result.bracketData ?? undefined,
+      startDate: result.startDate ?? undefined,
+      endDate: result.endDate ?? undefined,
+    } as ITournament;
   }
 
   async delete(id: string): Promise<void> {

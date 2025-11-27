@@ -84,6 +84,10 @@ export interface ITournamentUpdate {
   bracketData?: IBracketData;
   startDate?: Date;
   endDate?: Date;
+  invitationToken?: string | null;
+  invitationExpiresAt?: Date | null;
+  invitationCreatedAt?: Date | null;
+  invitationEnabled?: boolean;
 }
 
 /**

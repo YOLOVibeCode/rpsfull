@@ -15,6 +15,7 @@ describe('User Entity - Complete Coverage', () => {
     it('should have all required properties', () => {
       const user: IUser = {
         id: 'user-123',
+        username: 'testuser',
         email: 'test@example.com',
         passwordHash: 'hashed_password',
         role: UserRole.PLAYER,
@@ -34,6 +35,7 @@ describe('User Entity - Complete Coverage', () => {
     it('should accept all UserRole values', () => {
       const player: IUser = {
         id: '1',
+        username: 'player',
         email: 'player@test.com',
         passwordHash: 'hash',
         role: UserRole.PLAYER,
@@ -61,6 +63,7 @@ describe('User Entity - Complete Coverage', () => {
     it('should have readonly properties', () => {
       const user: IUser = {
         id: 'user-123',
+        username: 'testuser',
         email: 'test@example.com',
         passwordHash: 'hash',
         role: UserRole.PLAYER,
@@ -81,6 +84,7 @@ describe('User Entity - Complete Coverage', () => {
   describe('IUserCreate interface', () => {
     it('should require email and passwordHash', () => {
       const createData: IUserCreate = {
+        username: 'newuser',
         email: 'new@example.com',
         passwordHash: 'hashed_password',
       };
@@ -91,12 +95,14 @@ describe('User Entity - Complete Coverage', () => {
 
     it('should allow optional role', () => {
       const withRole: IUserCreate = {
+        username: 'organizer',
         email: 'test@example.com',
         passwordHash: 'hash',
         role: UserRole.ORGANIZER,
       };
 
       const withoutRole: IUserCreate = {
+        username: 'player',
         email: 'test@example.com',
         passwordHash: 'hash',
       };
@@ -136,6 +142,7 @@ describe('User Entity - Complete Coverage', () => {
     it('should not include passwordHash', () => {
       const publicUser: IUserPublic = {
         id: 'user-123',
+        username: 'testuser',
         email: 'test@example.com',
         role: UserRole.PLAYER,
         isEmailVerified: true,
@@ -152,6 +159,7 @@ describe('User Entity - Complete Coverage', () => {
     it('should have readonly properties', () => {
       const publicUser: IUserPublic = {
         id: 'user-123',
+        username: 'testuser',
         email: 'test@example.com',
         role: UserRole.PLAYER,
         isEmailVerified: true,

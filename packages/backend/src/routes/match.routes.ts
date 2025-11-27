@@ -34,13 +34,19 @@ export function setupMatchRoutes(): Router {
     validateBody(createMatchSchema),
     async (req: AuthenticatedRequest, res: Response) => {
       try {
-        const match = await matchService.createMatch(req.body, req.user!.id);
-        res.status(201).json({
+        if (!req.user) {
+          return res.status(401).json({
+            success: false,
+            error: { code: 'AUTH_001', message: 'Not authenticated' },
+          });
+        }
+        const match = await matchService.createMatch(req.body, req.user['id']);
+        return res.status(201).json({
           success: true,
           data: match,
         });
       } catch (error: any) {
-        res.status(400).json({
+        return res.status(400).json({
           success: false,
           error: {
             code: 'MATCH_001',
@@ -57,13 +63,20 @@ export function setupMatchRoutes(): Router {
    */
   router.get('/:id', async (req, res: Response) => {
     try {
-      const match = await matchService.getMatchById(req.params.id);
-      res.json({
+      const matchId = req.params['id'];
+      if (!matchId) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'VAL_001', message: 'Match ID is required' },
+        });
+      }
+      const match = await matchService.getMatchById(matchId);
+      return res.json({
         success: true,
         data: match,
       });
     } catch (error: any) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         error: {
           code: 'MATCH_001',
@@ -79,8 +92,14 @@ export function setupMatchRoutes(): Router {
    */
   router.get('/my', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: { code: 'AUTH_001', message: 'Not authenticated' },
+        });
+      }
       const { status, limit = 20, page = 1 } = req.query;
-      const matches = await matchService.getPlayerMatches(req.user!.id, {
+      const matches = await matchService.getPlayerMatches(req.user['id'], {
         status: status as any,
       });
 
@@ -88,7 +107,7 @@ export function setupMatchRoutes(): Router {
       const end = start + Number(limit);
       const paginated = matches.slice(start, end);
 
-      res.json({
+      return res.json({
         success: true,
         data: paginated,
         meta: {
@@ -101,7 +120,7 @@ export function setupMatchRoutes(): Router {
         },
       });
     } catch (error: any) {
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_ERROR',
@@ -117,8 +136,15 @@ export function setupMatchRoutes(): Router {
    */
   router.patch('/:id/start', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const match = await matchService.startMatch(req.params.id, req.user!.id);
-      res.json({
+      const matchId = req.params['id'];
+      if (!matchId || !req.user) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'VAL_001', message: 'Match ID and authentication required' },
+        });
+      }
+      const match = await matchService.startMatch(matchId, req.user['id']);
+      return res.json({
         success: true,
         data: {
           id: match.id,
@@ -127,7 +153,7 @@ export function setupMatchRoutes(): Router {
         },
       });
     } catch (error: any) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         error: {
           code: 'MATCH_002',
@@ -147,17 +173,24 @@ export function setupMatchRoutes(): Router {
     validateBody(submitMoveSchema),
     async (req: AuthenticatedRequest, res: Response) => {
       try {
+        const matchId = req.params['id'];
+        if (!matchId || !req.user) {
+          return res.status(400).json({
+            success: false,
+            error: { code: 'VAL_001', message: 'Match ID and authentication required' },
+          });
+        }
         const result = await matchGameplayService.submitMove(
-          req.params.id,
-          req.user!.id,
+          matchId,
+          req.user['id'],
           req.body
         );
-        res.status(201).json({
+        return res.status(201).json({
           success: true,
           data: result,
         });
       } catch (error: any) {
-        res.status(400).json({
+        return res.status(400).json({
           success: false,
           error: {
             code: 'MATCH_005',
@@ -178,13 +211,20 @@ export function setupMatchRoutes(): Router {
     validateBody(recordRoundSchema),
     async (req: AuthenticatedRequest, res: Response) => {
       try {
-        const result = await matchGameplayService.recordRound(req.params.id, req.body);
-        res.status(201).json({
+        const matchId = req.params['id'];
+        if (!matchId) {
+          return res.status(400).json({
+            success: false,
+            error: { code: 'VAL_001', message: 'Match ID is required' },
+          });
+        }
+        const result = await matchGameplayService.recordRound(matchId, req.body);
+        return res.status(201).json({
           success: true,
           data: result,
         });
       } catch (error: any) {
-        res.status(400).json({
+        return res.status(400).json({
           success: false,
           error: {
             code: 'MATCH_005',
@@ -201,13 +241,20 @@ export function setupMatchRoutes(): Router {
    */
   router.delete('/:id', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      await matchService.cancelMatch(req.params.id, req.user!.id);
-      res.json({
+      const matchId = req.params['id'];
+      if (!matchId || !req.user) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'VAL_001', message: 'Match ID and authentication required' },
+        });
+      }
+      await matchService.cancelMatch(matchId, req.user['id']);
+      return res.json({
         success: true,
         message: 'Match cancelled successfully',
       });
     } catch (error: any) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         error: {
           code: 'MATCH_001',
@@ -236,45 +283,103 @@ export function setupMatchRoutes(): Router {
         });
       }
 
-      if (!player1.firstName || !player1.lastName || !player1.email) {
+      // Validate and sanitize player1
+      if (!player1.firstName || typeof player1.firstName !== 'string' || !player1.firstName.trim()) {
         return res.status(400).json({
           success: false,
           error: {
             code: 'QUICK_START_002',
-            message: 'Player 1 requires firstName, lastName, and email',
+            message: 'Player 1 firstName is required',
+          },
+        });
+      }
+      if (!player1.lastName || typeof player1.lastName !== 'string' || !player1.lastName.trim()) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'QUICK_START_002',
+            message: 'Player 1 lastName is required',
+          },
+        });
+      }
+      if (!player1.email || typeof player1.email !== 'string' || !player1.email.trim()) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'QUICK_START_002',
+            message: 'Player 1 email is required',
           },
         });
       }
 
-      if (!player2.firstName || !player2.lastName || !player2.email) {
+      // Validate and sanitize player2
+      if (!player2.firstName || typeof player2.firstName !== 'string' || !player2.firstName.trim()) {
         return res.status(400).json({
           success: false,
           error: {
             code: 'QUICK_START_003',
-            message: 'Player 2 requires firstName, lastName, and email',
+            message: 'Player 2 firstName is required',
+          },
+        });
+      }
+      if (!player2.lastName || typeof player2.lastName !== 'string' || !player2.lastName.trim()) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'QUICK_START_003',
+            message: 'Player 2 lastName is required',
+          },
+        });
+      }
+      if (!player2.email || typeof player2.email !== 'string' || !player2.email.trim()) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'QUICK_START_003',
+            message: 'Player 2 email is required',
           },
         });
       }
 
+      // Sanitize all fields
+      const player1Data = {
+        firstName: String(player1.firstName).trim(),
+        lastName: String(player1.lastName).trim(),
+        email: String(player1.email).trim().toLowerCase(),
+      };
+      
+      const player2Data = {
+        firstName: String(player2.firstName).trim(),
+        lastName: String(player2.lastName).trim(),
+        email: String(player2.email).trim().toLowerCase(),
+      };
+
+      // Final validation after sanitization
+      if (!player1Data.email || !player2Data.email) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'QUICK_START_002',
+            message: 'Both players must have valid email addresses',
+          },
+        });
+      }
+
+      // Log the data being sent to service for debugging
+      console.log('QuickStart - Calling service with:', JSON.stringify({ player1: player1Data, player2: player2Data }, null, 2));
+      
       const result = await quickStartService.quickStartGame({
-        player1: {
-          firstName: player1.firstName.trim(),
-          lastName: player1.lastName.trim(),
-          email: player1.email.trim(),
-        },
-        player2: {
-          firstName: player2.firstName.trim(),
-          lastName: player2.lastName.trim(),
-          email: player2.email.trim(),
-        },
+        player1: player1Data,
+        player2: player2Data,
       });
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         data: result,
       });
     } catch (error: any) {
-      res.status(400).json({
+      console.error('QuickStart error:', error.message, error.stack);
+      return res.status(400).json({
         success: false,
         error: {
           code: 'QUICK_START_004',
@@ -294,12 +399,12 @@ export function setupMatchRoutes(): Router {
     async (req, res: Response) => {
       try {
         const result = await matchInvitationService.createMatchWithInvitation(req.body);
-        res.status(201).json({
+        return res.status(201).json({
           success: true,
           data: result,
         });
       } catch (error: any) {
-        res.status(400).json({
+        return res.status(400).json({
           success: false,
           error: {
             code: 'MATCH_INVITE_001',
@@ -323,7 +428,7 @@ export function setupMatchRoutes(): Router {
         data: invitationDetails,
       });
     } catch (error: any) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         error: {
           code: 'MATCH_INVITE_002',
@@ -347,7 +452,7 @@ export function setupMatchRoutes(): Router {
           token,
           player2: req.body.player2,
         });
-        res.json({
+        return res.json({
           success: true,
           data: {
             matchId: match.id,
@@ -355,7 +460,7 @@ export function setupMatchRoutes(): Router {
           },
         });
       } catch (error: any) {
-        res.status(400).json({
+        return res.status(400).json({
           success: false,
           error: {
             code: 'MATCH_INVITE_003',
@@ -372,9 +477,16 @@ export function setupMatchRoutes(): Router {
    */
   router.get('/:id/invitation', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const match = await matchService.getMatchById(req.params.id);
+      const matchId = req.params['id'];
+      if (!matchId) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'VAL_001', message: 'Match ID is required' },
+        });
+      }
+      const match = await matchService.getMatchById(matchId);
       
-      if (!match.invitationToken) {
+      if (!match || !match.invitationToken) {
         return res.status(404).json({
           success: false,
           error: {
@@ -385,12 +497,12 @@ export function setupMatchRoutes(): Router {
       }
 
       const invitationDetails = await matchInvitationService.getInvitationDetails(match.invitationToken);
-      res.json({
+      return res.json({
         success: true,
         data: invitationDetails,
       });
     } catch (error: any) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         error: {
           code: 'MATCH_INVITE_005',
@@ -406,14 +518,21 @@ export function setupMatchRoutes(): Router {
    */
   router.post('/:id/invitation/regenerate', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const newToken = await matchInvitationService.regenerateInvitationToken(req.params.id);
+      const matchId = req.params['id'];
+      if (!matchId) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'VAL_001', message: 'Match ID is required' },
+        });
+      }
+      const newToken = await matchInvitationService.regenerateInvitationToken(matchId);
       const invitationDetails = await matchInvitationService.getInvitationDetails(newToken);
-      res.json({
+      return res.json({
         success: true,
         data: invitationDetails,
       });
     } catch (error: any) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         error: {
           code: 'MATCH_INVITE_006',
@@ -429,13 +548,20 @@ export function setupMatchRoutes(): Router {
    */
   router.delete('/:id/invitation', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      await matchInvitationService.revokeInvitation(req.params.id);
-      res.json({
+      const matchId = req.params['id'];
+      if (!matchId) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'VAL_001', message: 'Match ID is required' },
+        });
+      }
+      await matchInvitationService.revokeInvitation(matchId);
+      return res.json({
         success: true,
         message: 'Invitation revoked successfully',
       });
     } catch (error: any) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         error: {
           code: 'MATCH_INVITE_007',

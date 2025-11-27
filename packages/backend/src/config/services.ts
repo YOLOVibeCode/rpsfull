@@ -15,6 +15,7 @@ import {
   TournamentEntryRepository,
   PlayerStatisticsRepository,
 } from '../repositories';
+import { TournamentRegistrationTokenRepository } from '../repositories/TournamentRegistrationTokenRepository';
 import {
   AuthService,
   MatchService,
@@ -26,6 +27,11 @@ import {
   StatisticsCalculationService,
   GameValidationService,
   QuickStartService,
+  QrCodeService,
+  MatchInvitationService,
+  TournamentInvitationService,
+  TournamentMagicLinkService,
+  EmailService,
 } from '../services';
 
 // Initialize repositories
@@ -49,16 +55,18 @@ export const matchGameplayService = new MatchGameplayService(
   matchRepository,
   roundRepository
 );
+// Use the actual repository directly - services that need organizerId will handle it
+// The interface mismatch is handled in TournamentService by calling repo.create directly
 export const tournamentService = new TournamentService(
-  tournamentRepository,
+  tournamentRepository as any, // Type assertion needed due to interface mismatch
   gameTypeRepository
 );
 export const tournamentRegistrationService = new TournamentRegistrationService(
-  tournamentRepository,
+  tournamentRepository as any,
   tournamentEntryRepository
 );
 export const tournamentBracketService = new TournamentBracketService(
-  tournamentRepository,
+  tournamentRepository as any,
   tournamentEntryRepository
 );
 export const statisticsService = new StatisticsService(playerStatisticsRepository);
@@ -83,5 +91,23 @@ export const matchInvitationService = new MatchInvitationService(
   matchRepository,
   gameTypeRepository,
   qrCodeService
+);
+
+export const tournamentInvitationService = new TournamentInvitationService(
+  tournamentRepository as any,
+  userRepository,
+  playerRepository,
+  tournamentRegistrationService,
+  qrCodeService
+);
+
+export const tournamentRegistrationTokenRepository = new TournamentRegistrationTokenRepository(prisma);
+export const emailService = new EmailService();
+
+export const tournamentMagicLinkService = new TournamentMagicLinkService(
+  tournamentRepository as any,
+  tournamentRegistrationTokenRepository,
+  tournamentRegistrationService,
+  emailService
 );
 

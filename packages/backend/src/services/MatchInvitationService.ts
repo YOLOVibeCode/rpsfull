@@ -63,7 +63,7 @@ export class MatchInvitationService implements IMatchInvitationService {
     });
 
     // Generate invitation link
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:4445';
+    const baseUrl = process.env['FRONTEND_URL'] || 'http://localhost:4445';
     const invitationLink = `${baseUrl}/join-game/${invitationToken}`;
 
     // Generate QR code
@@ -138,7 +138,7 @@ export class MatchInvitationService implements IMatchInvitationService {
     }
 
     // Generate invitation link
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:4445';
+    const baseUrl = process.env['FRONTEND_URL'] || 'http://localhost:4445';
     const invitationLink = `${baseUrl}/join-game/${token}`;
 
     // Generate QR code
@@ -204,6 +204,9 @@ export class MatchInvitationService implements IMatchInvitationService {
     lastName: string;
     email: string;
   }): Promise<any> {
+    if (!playerInfo || !playerInfo.email || typeof playerInfo.email !== 'string') {
+      throw new Error(`Invalid player info: ${JSON.stringify(playerInfo)}`);
+    }
     const email = playerInfo.email.toLowerCase().trim();
     const fullName = `${playerInfo.firstName} ${playerInfo.lastName}`.trim();
 

@@ -13,7 +13,6 @@ import {
   ILeaderboardDto,
 } from '@rpsfull-platform/contracts';
 import { IPlayerStatisticsRepository } from '@rpsfull-platform/contracts';
-import { IPlayerRepository } from '@rpsfull-platform/contracts';
 
 export class StatisticsService implements IStatisticsService {
   constructor(private statisticsRepository: IPlayerStatisticsRepository) {}
@@ -64,13 +63,18 @@ export class StatisticsService implements IStatisticsService {
       throw new Error('No statistics found');
     }
 
-    return { statistics: allStats[0] };
+    const firstStat = allStats[0];
+    if (!firstStat) {
+      throw new Error('No statistics found');
+    }
+
+    return { statistics: firstStat };
   }
 
   async getHeadToHeadStats(
     player1Id: string,
     player2Id: string,
-    gameTypeId?: string
+    _gameTypeId?: string
   ): Promise<IHeadToHeadStatsDto> {
     // Mock implementation - would query match history
     return {
@@ -85,7 +89,7 @@ export class StatisticsService implements IStatisticsService {
     };
   }
 
-  async getGlobalStats(gameTypeId?: string): Promise<IGlobalStatsDto> {
+  async getGlobalStats(_gameTypeId?: string): Promise<IGlobalStatsDto> {
     // Mock implementation - would aggregate statistics
     return {
       totalPlayers: 0,

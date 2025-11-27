@@ -8,7 +8,7 @@ import { createServer } from 'http';
 import { createApp } from './app';
 import { initializeSocket } from './socket';
 
-const PORT = process.env.API_PORT || process.env.PORT || 4444;
+const PORT = process.env['API_PORT'] || process.env['PORT'] || 4444;
 
 // Create Express app
 const app = createApp();

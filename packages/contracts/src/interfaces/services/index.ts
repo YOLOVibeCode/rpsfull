@@ -11,4 +11,5 @@ export * from './ITournamentService';
 export * from './IStatisticsService';
 export * from './IGameValidationService';
 export * from './IQrCodeService';
+export * from './IEmailService';
 

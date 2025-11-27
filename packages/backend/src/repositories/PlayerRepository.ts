@@ -17,7 +17,7 @@ export class PlayerRepository implements IPlayerRepository {
   constructor(private prisma: PrismaClient) {}
 
   async create(data: IPlayerCreate): Promise<IPlayer> {
-    return this.prisma.player.create({
+    const result = await this.prisma.player.create({
       data: {
         name: data.name,
         displayName: data.displayName,
@@ -30,34 +30,65 @@ export class PlayerRepository implements IPlayerRepository {
         isActive: true,
       },
     });
+    return {
+      ...result,
+      email: result.email ?? undefined,
+      displayName: result.displayName ?? undefined,
+      userId: result.userId ?? undefined,
+      bio: result.bio ?? undefined,
+    } as IPlayer;
   }
 
   async findById(id: string): Promise<IPlayer | null> {
-    return this.prisma.player.findUnique({
+    const result = await this.prisma.player.findUnique({
       where: { id },
     });
+    if (!result) return null;
+    return {
+      ...result,
+      email: result.email ?? undefined,
+      displayName: result.displayName ?? undefined,
+      userId: result.userId ?? undefined,
+      bio: result.bio ?? undefined,
+    } as IPlayer;
   }
 
   async findByUserId(userId: string): Promise<IPlayer | null> {
-    return this.prisma.player.findFirst({
+    const result = await this.prisma.player.findFirst({
       where: {
         userId,
         deletedAt: null,
       },
     });
+    if (!result) return null;
+    return {
+      ...result,
+      email: result.email ?? undefined,
+      displayName: result.displayName ?? undefined,
+      userId: result.userId ?? undefined,
+      bio: result.bio ?? undefined,
+    } as IPlayer;
   }
 
   async findByEmail(email: string): Promise<IPlayer | null> {
-    return this.prisma.player.findFirst({
+    const result = await this.prisma.player.findFirst({
       where: {
         email: email.toLowerCase(),
         deletedAt: null,
       },
     });
+    if (!result) return null;
+    return {
+      ...result,
+      email: result.email ?? undefined,
+      displayName: result.displayName ?? undefined,
+      userId: result.userId ?? undefined,
+      bio: result.bio ?? undefined,
+    } as IPlayer;
   }
 
   async searchByName(query: string, limit: number = 20): Promise<IPlayer[]> {
-    return this.prisma.player.findMany({
+    const results = await this.prisma.player.findMany({
       where: {
         deletedAt: null,
         OR: [
@@ -68,10 +99,17 @@ export class PlayerRepository implements IPlayerRepository {
       take: limit,
       orderBy: { name: 'asc' },
     });
+    return results.map((result) => ({
+      ...result,
+      email: result.email ?? undefined,
+      displayName: result.displayName ?? undefined,
+      userId: result.userId ?? undefined,
+      bio: result.bio ?? undefined,
+    })) as IPlayer[];
   }
 
   async findAll(limit: number = 20, offset: number = 0): Promise<IPlayer[]> {
-    return this.prisma.player.findMany({
+    const results = await this.prisma.player.findMany({
       where: {
         deletedAt: null,
       },
@@ -79,10 +117,17 @@ export class PlayerRepository implements IPlayerRepository {
       skip: offset,
       orderBy: { name: 'asc' },
     });
+    return results.map((result) => ({
+      ...result,
+      email: result.email ?? undefined,
+      displayName: result.displayName ?? undefined,
+      userId: result.userId ?? undefined,
+      bio: result.bio ?? undefined,
+    })) as IPlayer[];
   }
 
   async update(id: string, data: IPlayerUpdate): Promise<IPlayer> {
-    return this.prisma.player.update({
+    const result = await this.prisma.player.update({
       where: { id },
       data: {
         ...(data.name && { name: data.name }),
@@ -91,6 +136,13 @@ export class PlayerRepository implements IPlayerRepository {
         ...(data.bio !== undefined && { bio: data.bio }),
       },
     });
+    return {
+      ...result,
+      email: result.email ?? undefined,
+      displayName: result.displayName ?? undefined,
+      userId: result.userId ?? undefined,
+      bio: result.bio ?? undefined,
+    } as IPlayer;
   }
 
   async delete(id: string): Promise<void> {

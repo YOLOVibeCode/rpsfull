@@ -40,10 +40,11 @@ export default function JoinGamePage() {
   useEffect(() => {
     const fetchInvitation = async () => {
       try {
-        const response = await apiClient.get<{ success: boolean; data: InvitationDetails }>(
+        // API client unwraps response.data, so response is InvitationDetails directly
+        const response = await apiClient.get<InvitationDetails>(
           `/matches/join/${token}`
         );
-        setInvitationDetails(response.data);
+        setInvitationDetails(response);
       } catch (error: any) {
         setErrors({
           submit: error.message || 'Invalid or expired invitation link',
@@ -70,7 +71,8 @@ export default function JoinGamePage() {
     }
 
     try {
-      const response = await apiClient.post<{ success: boolean; data: { matchId: string } }>(
+      // API client unwraps response.data, so response is { matchId: string } directly
+      const response = await apiClient.post<{ matchId: string }>(
         `/matches/join/${token}`,
         {
           token,
@@ -82,7 +84,7 @@ export default function JoinGamePage() {
         }
       );
 
-      router.push(`/play/${response.data.matchId}`);
+      router.push(`/play/${response.matchId}`);
     } catch (error: any) {
       setErrors({
         submit: error.message || 'Failed to join game. Please try again.',

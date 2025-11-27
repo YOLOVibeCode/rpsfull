@@ -10,14 +10,16 @@ import {
   ICreateTournamentDto,
   ITournament,
   ITournamentWithDetails,
+  IPublicTournamentDto,
+  TournamentStatus,
 } from '@rpsfull-platform/contracts';
 import { ITournamentRepository } from '@rpsfull-platform/contracts';
 import { IGameTypeRepository } from '@rpsfull-platform/contracts';
-import { IUserRepository } from '@rpsfull-platform/contracts';
+import { TournamentRepository } from '../repositories/TournamentRepository';
 
 export class TournamentService implements ITournamentService {
   constructor(
-    private tournamentRepository: ITournamentRepository,
+    private tournamentRepository: ITournamentRepository | TournamentRepository,
     private gameTypeRepository: IGameTypeRepository
   ) {}
 
@@ -31,8 +33,9 @@ export class TournamentService implements ITournamentService {
       throw new Error('Game type not found');
     }
 
-    // Create tournament
-    return this.tournamentRepository.create(data, organizerId);
+    // Create tournament - handle interface mismatch
+    const repo = this.tournamentRepository as any as TournamentRepository;
+    return repo.create(data, organizerId);
   }
 
   async getTournamentById(tournamentId: string): Promise<ITournamentWithDetails> {
@@ -62,8 +65,37 @@ export class TournamentService implements ITournamentService {
     };
   }
 
-  async getTournaments(filters?: { status?: string }): Promise<ITournament[]> {
+  async getTournaments(filters?: { status?: TournamentStatus }): Promise<ITournament[]> {
     return this.tournamentRepository.findAll(filters);
+  }
+
+  async getPublicTournamentById(tournamentId: string): Promise<IPublicTournamentDto> {
+    const tournament = await this.tournamentRepository.findById(tournamentId);
+    if (!tournament) {
+      throw new Error('Tournament not found');
+    }
+
+    const gameType = await this.gameTypeRepository.findById(tournament.gameTypeId);
+    if (!gameType) {
+      throw new Error('Game type not found');
+    }
+
+    // Return only public fields (no sensitive data)
+    return {
+      id: tournament.id,
+      name: tournament.name,
+      description: tournament.description,
+      tournamentType: tournament.tournamentType as any,
+      status: tournament.status as any,
+      currentParticipants: tournament.participantCount,
+      maxParticipants: tournament.maxParticipants,
+      startDate: tournament.startDate,
+      registrationDeadline: tournament.registrationDeadline,
+      gameType: {
+        name: gameType.name,
+        description: gameType.description,
+      },
+    };
   }
 
   async updateTournament(

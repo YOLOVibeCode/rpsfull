@@ -2,6 +2,8 @@
 
 A comprehensive Rock Paper Scissors tournament platform with real-time gameplay, statistics tracking, and custom game type creation.
 
+🌐 **Live**: [rpsfull.pro](https://rpsfull.pro) | **API**: [api.rpsfull.pro](https://api.rpsfull.pro)
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -86,10 +88,17 @@ Frontend will start on **http://localhost:4445**
 
 #### 7. Access the Application
 
+**Development:**
 - **Frontend**: http://localhost:4445
 - **Backend API**: http://localhost:4444
 - **API Health Check**: http://localhost:4444/health
 - **API Base URL**: http://localhost:4444/api/v1
+
+**Production:**
+- **Frontend**: https://rpsfull.pro
+- **Backend API**: https://api.rpsfull.pro
+- **API Health Check**: https://api.rpsfull.pro/health
+- **API Base URL**: https://api.rpsfull.pro/api/v1
 
 ## 🎮 Test Accounts
 
@@ -304,7 +313,25 @@ If ports 4444 or 4445 are already in use:
 
 ## 🚢 Deployment
 
-See [SETUP.md](./SETUP.md) for deployment instructions.
+### Production Domain
+
+- **Frontend**: https://rpsfull.pro
+- **API**: https://api.rpsfull.pro
+- **Email**: SendGrid (noreply@rpsfull.pro)
+
+### Vercel Deployment
+
+See [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) for detailed Vercel deployment instructions.
+
+### Environment Variables
+
+See [.env.example](./.env.example) for all required environment variables.
+
+**Key Production Variables:**
+- `FRONTEND_URL=https://rpsfull.pro`
+- `NEXT_PUBLIC_API_URL=https://api.rpsfull.pro/api/v1`
+- `SENDGRID_API_KEY` (configured)
+- `EMAIL_FROM=noreply@rpsfull.pro`
 
 ## 📝 Development Principles
 

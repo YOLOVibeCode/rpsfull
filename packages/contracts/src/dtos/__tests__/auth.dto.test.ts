@@ -13,6 +13,9 @@ import {
   IRegisterEmailDto,
   IAuthResponseDto,
   IRefreshTokenDto,
+  IForgotPasswordDto,
+  IResetPasswordDto,
+  IForgotPasswordResponseDto,
 } from '../auth.dto';
 import { UserRole } from '../../enums';
 
@@ -30,23 +33,29 @@ describe('Auth DTOs - Complete Coverage', () => {
   });
 
   describe('IRegisterDto', () => {
-    it('should have email, password, and name properties', () => {
+    it('should have username, email, and password properties', () => {
       const dto: IRegisterDto = {
+        username: 'johndoe',
         email: 'user@example.com',
         password: 'SecurePass123',
-        name: 'John Doe',
+        firstName: 'John',
+        lastName: 'Doe',
       };
 
+      expect(dto.username).toBe('johndoe');
       expect(dto.email).toBe('user@example.com');
       expect(dto.password).toBe('SecurePass123');
-      expect(dto.name).toBe('John Doe');
+      expect(dto.firstName).toBe('John');
+      expect(dto.lastName).toBe('Doe');
     });
 
     it('should allow optional displayName', () => {
       const dto: IRegisterDto = {
+        username: 'johndoe',
         email: 'user@example.com',
         password: 'SecurePass123',
-        name: 'John Doe',
+        firstName: 'John',
+        lastName: 'Doe',
         displayName: 'JohnD',
       };
 
@@ -78,6 +87,7 @@ describe('Auth DTOs - Complete Coverage', () => {
       const dto: IAuthResponseDto = {
         user: {
           id: 'user-123',
+          username: 'testuser',
           email: 'user@example.com',
           role: UserRole.PLAYER,
           isEmailVerified: true,
@@ -102,6 +112,38 @@ describe('Auth DTOs - Complete Coverage', () => {
       };
 
       expect(dto.refreshToken).toBe('refresh-token-123');
+    });
+  });
+
+  describe('IForgotPasswordDto', () => {
+    it('should have email property', () => {
+      const dto: IForgotPasswordDto = {
+        email: 'user@example.com',
+      };
+
+      expect(dto.email).toBe('user@example.com');
+    });
+  });
+
+  describe('IResetPasswordDto', () => {
+    it('should have token and password properties', () => {
+      const dto: IResetPasswordDto = {
+        token: 'reset-token-123',
+        password: 'NewPassword123!',
+      };
+
+      expect(dto.token).toBe('reset-token-123');
+      expect(dto.password).toBe('NewPassword123!');
+    });
+  });
+
+  describe('IForgotPasswordResponseDto', () => {
+    it('should have message property', () => {
+      const dto: IForgotPasswordResponseDto = {
+        message: 'Password reset email sent',
+      };
+
+      expect(dto.message).toBe('Password reset email sent');
     });
   });
 });

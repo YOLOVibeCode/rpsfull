@@ -5,7 +5,16 @@
  */
 
 import { IUser, IUserPublic } from '../../entities/User.entity';
-import { ILoginDto, IRegisterDto, IRegisterEmailDto, IAuthResponseDto, IRefreshTokenResponseDto } from '../../dtos/auth.dto';
+import { 
+  ILoginDto, 
+  IRegisterDto, 
+  IRegisterEmailDto, 
+  IAuthResponseDto, 
+  IRefreshTokenResponseDto,
+  IForgotPasswordDto,
+  IResetPasswordDto,
+  IForgotPasswordResponseDto,
+} from '../../dtos/auth.dto';
 
 /**
  * Authentication service interface
@@ -56,5 +65,20 @@ export interface IAuthService {
    * Check if email is available (case-insensitive)
    */
   checkEmailAvailability(email: string): Promise<boolean>;
+
+  /**
+   * Request password reset (sends reset email)
+   */
+  forgotPassword(data: IForgotPasswordDto): Promise<IForgotPasswordResponseDto>;
+
+  /**
+   * Reset password with token
+   */
+  resetPassword(data: IResetPasswordDto): Promise<void>;
+
+  /**
+   * Resend verification email
+   */
+  resendVerificationEmail(email: string): Promise<{ message: string }>;
 }
 

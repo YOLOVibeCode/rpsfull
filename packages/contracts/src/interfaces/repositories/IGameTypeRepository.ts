@@ -50,5 +50,10 @@ export interface IGameTypeRepository {
    * Delete game type
    */
   delete(id: string): Promise<void>;
+
+  /**
+   * Find game types created by a specific user
+   */
+  findByCreator(userId: string): Promise<IGameType[]>;
 }
 
