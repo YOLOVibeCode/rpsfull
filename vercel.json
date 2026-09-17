@@ -1,9 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && pnpm install && pnpm contracts:build && pnpm --filter @rpsfull-platform/frontend build",
-  "outputDirectory": "packages/frontend/.next",
-  "installCommand": "cd ../.. && pnpm install",
-  "framework": "nextjs",
-  "rootDirectory": "packages/frontend"
+  "buildCommand": "cd ../.. && pnpm install --include-workspace-root && cd packages/contracts && npx --yes -p typescript tsc && cd ../frontend && NODE_ENV=development pnpm install && pnpm build",
+  "outputDirectory": ".next",
+  "installCommand": "cd ../.. && pnpm install --include-workspace-root",
+  "framework": "nextjs"
 }
 

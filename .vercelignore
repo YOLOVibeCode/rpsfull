@@ -38,7 +38,7 @@ docs/
 # Other packages (only deploy frontend)
 packages/backend/
 packages/mock-api/
-packages/contracts/
+# Note: contracts/ is needed for the build, so don't ignore it
 
 # Git
 .git/

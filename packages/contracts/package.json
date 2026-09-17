@@ -4,6 +4,12 @@
   "description": "Shared contracts and type definitions for RPSFull Tournament Platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "files": [
     "dist"
   ],
@@ -42,4 +48,3 @@
     "typescript": ">=5.0.0"
   }
 }
-

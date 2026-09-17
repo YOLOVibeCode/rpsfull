@@ -55,11 +55,11 @@ export default function LoginPage() {
       [name]: value,
     }));
     // Clear errors when user starts typing
-    if (errors[name] || errors.identifier) {
+    if (errors[name] || errors['identifier']) {
       setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
-        delete newErrors.identifier;
+        delete newErrors['identifier'];
         return newErrors;
       });
     }
@@ -99,8 +99,8 @@ export default function LoginPage() {
                 className="w-full"
               />
             </div>
-            {errors.identifier && (
-              <p className="mt-1 text-sm text-red-600">{errors.identifier}</p>
+            {errors['identifier'] && (
+              <p className="mt-1 text-sm text-red-600">{errors['identifier']}</p>
             )}
             <p className="mt-1 text-xs text-gray-500">
               Enter either your username or email address
@@ -115,7 +115,7 @@ export default function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              error={errors.password}
+              error={errors['password']}
               placeholder="••••••••"
             />
             <div className="mt-2 text-right">
@@ -128,9 +128,9 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {errors.submit && (
+          {errors['submit'] && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {errors.submit}
+              {errors['submit']}
             </div>
           )}
 

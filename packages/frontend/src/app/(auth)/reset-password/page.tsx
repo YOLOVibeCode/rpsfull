@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api/client';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { toast } from '@/lib/toast';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [token, setToken] = useState<string>('');
@@ -95,10 +95,10 @@ export default function ResetPasswordPage() {
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
-    if (errors.password) {
+    if (errors['password']) {
       setErrors((prev) => {
         const newErrors = { ...prev };
-        delete newErrors.password;
+        delete newErrors['password'];
         return newErrors;
       });
     }
@@ -106,10 +106,10 @@ export default function ResetPasswordPage() {
 
   const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setConfirmPassword(e.target.value);
-    if (errors.confirmPassword) {
+    if (errors['confirmPassword']) {
       setErrors((prev) => {
         const newErrors = { ...prev };
-        delete newErrors.confirmPassword;
+        delete newErrors['confirmPassword'];
         return newErrors;
       });
     }
@@ -165,9 +165,9 @@ export default function ResetPasswordPage() {
           </p>
         </div>
 
-        {errors.token && (
+        {errors['token'] && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-            {errors.token}
+            {errors['token']}
             <div className="mt-2">
               <Link href="/forgot-password" className="text-sm underline">
                 Request a new reset link
@@ -185,7 +185,7 @@ export default function ResetPasswordPage() {
               value={password}
               onChange={handlePasswordChange}
               required
-              error={errors.password}
+              error={errors['password']}
               placeholder="Enter new password"
               autoComplete="new-password"
             />
@@ -202,7 +202,7 @@ export default function ResetPasswordPage() {
               value={confirmPassword}
               onChange={handleConfirmPasswordChange}
               required
-              error={errors.confirmPassword}
+              error={errors['confirmPassword']}
               placeholder="Confirm new password"
               autoComplete="new-password"
             />
@@ -221,10 +221,10 @@ export default function ResetPasswordPage() {
             </label>
           </div>
 
-          {errors.submit && (
+          {errors['submit'] && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {errors.submit}
-              {errors.submit.includes('expired') && (
+              {errors['submit']}
+              {errors['submit']?.includes('expired') && (
                 <div className="mt-2">
                   <Link href="/forgot-password" className="text-sm underline">
                     Request a new reset link
@@ -256,6 +256,22 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 px-4 py-8">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 sm:p-8">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
 

@@ -114,7 +114,7 @@ export default function RegisterPage() {
                 value={formData.username}
                 onChange={handleChange}
                 required
-                error={errors.username}
+                error={errors['username']}
                 placeholder="rocky_rocker"
                 className="pr-10"
                 minLength={3}
@@ -146,7 +146,7 @@ export default function RegisterPage() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                error={errors.email}
+                error={errors['email']}
                 placeholder="you@example.com"
                 className="pr-10"
               />
@@ -172,7 +172,7 @@ export default function RegisterPage() {
             value={formData.password}
             onChange={handleChange}
             required
-            error={errors.password}
+            error={errors['password']}
             placeholder="••••••••"
             minLength={8}
           />
@@ -187,7 +187,7 @@ export default function RegisterPage() {
             name="firstName"
             value={formData.firstName}
             onChange={handleChange}
-            error={errors.firstName}
+            error={errors['firstName']}
             placeholder="Rocky (optional)"
           />
 
@@ -198,7 +198,7 @@ export default function RegisterPage() {
             name="lastName"
             value={formData.lastName}
             onChange={handleChange}
-            error={errors.lastName}
+            error={errors['lastName']}
             placeholder="Rocker (optional)"
           />
 
@@ -209,13 +209,13 @@ export default function RegisterPage() {
             name="displayName"
             value={formData.displayName}
             onChange={handleChange}
-            error={errors.displayName}
+            error={errors['displayName']}
             placeholder="Rocky (optional)"
           />
 
-          {errors.submit && (
+          {errors['submit'] && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {errors.submit}
+              {errors['submit']}
             </div>
           )}
 
